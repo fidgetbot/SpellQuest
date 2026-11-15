@@ -65,3 +65,10 @@ Handwriting recognition, accounts, timers, punitive scoring, and automatic dicti
 ## Deployment
 
 The static game is published from the root of `main` through GitHub Pages at `https://fidgetbot.github.io/SpellQuest/`.
+
+## Storybook visual design
+- Generated map, woodland ruins, golden library, and moonlit observatory share a four-tile environment atlas. Source PNG is preserved in assets/source; runtime uses compressed WebP.
+- Each trial has a distinct illustrated backdrop with a quiet parchment reading area. All text, answer controls, counters, and map progress remain live HTML.
+- Gold star and ruby heart counters lead the HUD. Mastery and streak remain secondary statistics.
+- Phone layout places a compact map above one active trial. Explore map expands the map and victory vault; short phone screens collapse map artwork by default. Desktop uses two columns.
+- Voice audio sits above the answer and in-game keyboard. Visible focus styles and at least 44px-high keyboard keys support interaction; reduced-motion settings disable decorative animation.

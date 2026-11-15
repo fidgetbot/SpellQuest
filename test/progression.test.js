@@ -256,3 +256,16 @@ test('Voice keyboard supports editing, case, phrases and accents without native 
   assert.equal(doc.getElementById('spell-input').textContent,answer);
   assert.deepEqual(errors,[]);dom.window.close();
 });
+
+test('map toggle is reversible and trial themes retain the same audio control',()=>{
+  for(const tier of [0,1,2]){
+    const {dom,errors}=createGame(baseSave({progress:{Machine:tier}})),doc=dom.window.document;
+    assert.equal(doc.querySelector('.challenge').dataset.trial,String(tier));
+    assert.equal(doc.querySelectorAll('#audio-btn').length,1);
+    assert.equal(doc.getElementById('audio-btn').parentElement.id,'audio-control');
+    const toggle=doc.getElementById('map-toggle');
+    toggle.click();assert.equal(toggle.getAttribute('aria-expanded'),'true');
+    toggle.click();assert.equal(toggle.getAttribute('aria-expanded'),'false');
+    assert.deepEqual(errors,[]);dom.window.close();
+  }
+});

@@ -61,6 +61,8 @@ function jewelMarkup(word,labeled=false){return `<div class="jewel-win" style="-
 function loadChallenge(){
   state.answer='';state.locked=false;state.lastMastered=false;state.visitFailed=false;state.hintUsed=false;
   const word=currentWord(),tier=currentTier(),trial=TRIALS[tier];
+  document.querySelector('.challenge').dataset.trial=tier;
+  $('audio-control').append($('audio-btn'));
   $('feedback').textContent='';$('feedback').className='feedback';$('next-btn').classList.add('hidden');$('check-btn').classList.remove('hidden');
   $('hint-btn').classList.toggle('hidden',tier===2);$('hint-btn').disabled=state.hearts===0;$('audio-btn').classList.toggle('hidden',tier!==2);$('audio-btn').disabled=false;
   $('challenge-type').textContent=trial.name;$('round-count').textContent=`${state.mastered.length} victories won · ${state.queue.length} queued`;
@@ -155,3 +157,9 @@ function continueCampaign(){
 if(loadedSave&&loadedSave.mastered.length<WORD_BANK.length)$('continue-btn').classList.remove('hidden');
 $('start-btn').onclick=()=>begin(false);$('continue-btn').onclick=()=>begin(true);$('hint-btn').onclick=hint;$('audio-btn').onclick=speakWord;$('check-btn').onclick=check;$('next-btn').onclick=nextChallenge;$('replay-btn').onclick=continueCampaign;
 document.addEventListener('keydown',event=>{if(event.target.closest?.('#voice-keyboard'))return;if(event.key==='Enter'&&!$('game').classList.contains('hidden')){if(!$('next-btn').classList.contains('hidden'))nextChallenge();else check();}});
+
+$('map-toggle').onclick=()=>{
+  const map=document.querySelector('.map'),expanded=map.classList.toggle('expanded');
+  $('map-toggle').setAttribute('aria-expanded',String(expanded));
+  $('map-toggle').textContent=expanded?'Close map':'Explore map';
+};

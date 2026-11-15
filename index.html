@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#18233c">
   <title>Word Quest: The Shattered Lexicon</title>
-  <link rel="stylesheet" href="styles.css?v=20261114.8">
+  <link rel="stylesheet" href="styles.css?v=20261114.9">
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -16,9 +16,9 @@
         <h1>Word Quest</h1>
       </div>
       <div class="stats" aria-label="Quest progress">
-        <span><b id="mastered-count">0 / 0</b> Mastered</span>
-        <span><b id="stars">0</b> Stars</span>
-        <span><b id="streak">0</b> Streak</span>
+        <span class="minor-stat"><b id="mastered-count">0 / 0</b> Mastered</span>
+        <span class="star-stat"><i aria-hidden="true">★</i><b id="stars">0</b> Stars</span>
+        <span class="minor-stat"><b id="streak">0</b> Streak</span>
         <span class="heart-stat" aria-live="polite"><i aria-hidden="true">♥</i> <b id="hearts">5 / 10</b> Hearts</span>
       </div>
     </header>
@@ -40,6 +40,7 @@
             <p class="eyebrow">Quest map</p>
             <span id="active-count">10 active</span>
           </div>
+          <button id="map-toggle" class="secondary map-toggle" aria-expanded="false" aria-controls="map-details">Explore map</button>
           <div class="quest-map-art" aria-label="Map of the ten active quests">
             <div class="map-moon"></div>
             <div class="map-mountain mountain-one"></div>
@@ -49,11 +50,13 @@
             <svg class="map-trail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M8,78 C17,72 18,67 24,65 S35,74 43,76 S54,67 62,64 S77,75 82,73 S92,61 88,48 S77,41 69,39 S58,48 49,50 S38,36 29,35 S38,20 47,17"/></svg>
             <div id="map-nodes" class="map-nodes"></div>
           </div>
+          <div id="map-details">
           <div class="vault-heading"><span>Victory vault</span><small id="queue-count"></small></div>
           <div id="jewel-vault" class="jewel-vault"></div>
           <div class="hero-card">
             <div class="hero" aria-hidden="true">◆</div>
             <div><b id="location-name">Whispering Gate</b><small id="quest-note">The first rune waits.</small></div>
+          </div>
           </div>
         </aside>
 
@@ -63,6 +66,7 @@
             <span id="round-count">Challenge 1</span>
           </div>
           <div id="prompt-area"></div>
+          <div id="audio-control"></div>
           <div id="answer-area"></div>
           <div id="feedback" class="feedback" role="status"></div>
           <div class="actions">
@@ -84,8 +88,8 @@
       <button id="replay-btn" class="primary">Begin next chapter</button>
     </section>
   </main>
-  <script src="words.js?v=20261114.8"></script>
-  <script src="definitions.js?v=20261114.8"></script>
-  <script src="game.js?v=20261114.8"></script>
+  <script src="words.js?v=20261114.9"></script>
+  <script src="definitions.js?v=20261114.9"></script>
+  <script src="game.js?v=20261114.9"></script>
 </body>
 </html>

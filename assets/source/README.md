@@ -1,0 +1,11 @@
+# Storybook environment atlas
+
+Generated with the built-in image-generation tool using the approved phone concept as a style reference. Source: storybook-atlas.png. Runtime: ../storybook-atlas.webp (quality 88 WebP, original dimensions). CSS selects equal quadrants, keeping interactive content independent of artwork.
+
+Generation prompt:
+Create a production-ready square 2 by 2 background texture atlas for the Word Quest game, using the reference image's beautiful hand-painted detailed storybook fantasy art style. Four equal-sized square quadrants exactly aligned edge-to-edge, no gaps, no frames. NO text, NO letters, NO numbers, NO UI, NO counters, NO icons, NO keyboard, NO characters, NO markers. This is environment artwork to sit behind actual HTML controls.
+TOP LEFT quadrant: exquisitely detailed overhead fantasy map of emerald woodland, turquoise winding river, waterfalls, old stone bridges, distant gold castle near top center, hills and snowy mountains. Terrain readable from top down, gentle winding clearings through forest; NO route line (will be rendered by code). Fill this quadrant with detailed scenery, no blank parchment.
+TOP RIGHT quadrant: Rune Path trial background, detailed ancient mossy woodland stone archway with glowing blue runes that are abstract symbols NOT letters. Sunlit emerald leaves, tiny flowers and warm gold sunlight around perimeter. Center 65 percent of quadrant is calm softly textured warm ivory parchment-like mist with minimal detail, to keep text and controls highly readable.
+BOTTOM LEFT quadrant: Fading Script trial background. Cozy ancient golden library with rich carved shelves, books, candlelight, floating blank pages, ink bottle around perimeter; center 65 percent calm ivory parchment with minimal detail for readable controls.
+BOTTOM RIGHT quadrant: Voice Trial background, blue moonlit observatory with telescope, starry sky and brass astronomical instruments at perimeter; center 65 percent calm warm ivory parchment with minimal detail.
+All four quadrants share premium painted textures, beautiful subtle lighting, rich jewel colors, precise intricate environment detail, inviting educational adventure mood. Maximize quality. Strict equal quadrant arrangement required for CSS background positioning. No title or labels anywhere.
