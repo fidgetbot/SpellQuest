@@ -20,7 +20,7 @@ Each word advances through exactly three trials:
 
 1. **Rune Path:** The complete word is visible. The player chooses all letter runes in order.
 2. **Fading Script:** The word remains visible in incomplete form, and the player supplies more than half of its letters.
-3. **Voice Trial:** The written word, hints, and letter pool are removed. The player hears the word and types it completely from memory.
+3. **Voice Trial:** The written word, hints, and letter pool are removed. The player hears the word and enters it completely from memory using a full in-game keyboard.
 
 A word is mastered only after a correct Voice Trial. Incorrect answers never advance the word. Hints are available only in the first two trials. Replaying the spoken prompt is allowed and does not reduce mastery.
 
@@ -32,7 +32,7 @@ Hearts replace the former Focus counter. New campaigns start with 5 hearts, capp
 
 After every successful trial, the game displays its complete story blurb and waits indefinitely. Progression occurs only when the player activates the visible Continue Story control; success must never schedule automatic advancement.
 
-Homophones, contractions, and capitalization lessons use an audible context sentence in the Voice Trial. Other entries are spoken twice. Spanish entries use a Spanish speech locale when supported.
+Each Hear word click speaks only the target word once, without introductions, context sentences, or repetition. Spanish entries use a Spanish speech locale when supported. The free visible definition supplies meaning for homophones. Voice Trial answers use a non-editable display and a target-independent on-screen QWERTY keyboard with Shift, accented letters, apostrophe, hyphen, space, backspace, and clear. No native typing field, predictive suggestions, or paste entry is available. Keyboard buttons support Tab and Enter/Space activation.
 
 Child-friendly definitions appear immediately beneath the challenge heading in all three trials, without revealing the target spelling. The complete current bank has local definitions in `definitions.js`; no network lookup is required.
 

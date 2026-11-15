@@ -21,7 +21,16 @@ function baseSave(overrides={}){
   const words=['Machine','Accept','except','Father','Scary','Steal','Ate','Intensity','Level','Stopped'];
   return {active:words,queue:['Mother'],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:10,stars:0,streak:0,hearts:5,attempts:{},...overrides};
 }
-function type(dom,value){const input=dom.window.document.getElementById('spell-input');input.value=value;input.dispatchEvent(new dom.window.Event('input'));}
+function type(dom,value){
+  const doc=dom.window.document,keys=[...doc.querySelectorAll('.voice-key')];
+  keys.find(key=>key.textContent==='Clear').click();
+  for(const character of value){
+    let button=keys.find(key=>key.textContent===character);
+    if(!button&&/[A-Za-zÀ-ÿ]/.test(character)){keys.find(key=>key.textContent==='Shift').click();button=keys.find(key=>key.textContent===character);}
+    if(character===' ')button=keys.find(key=>key.textContent==='Space');
+    assert.ok(button, 'Available key: '+character);button.click();
+  }
+}
 function wordBank(){const dom=new JSDOM('<!doctype html>',{runScripts:'outside-only'});dom.window.eval(fs.readFileSync(path.join(root,'words.js'),'utf8'));return dom.window.WORD_BANK;}
 function fillFading(dom,word,wrong=false){for(const input of dom.window.document.querySelectorAll('.missing-word input')){const expected=word[Number(input.dataset.position)];input.value=wrong?(expected.toLocaleLowerCase()==='z'?'x':'z'):expected;input.dispatchEvent(new dom.window.Event('input'));}}
 function visibleChallengeContent(dom){const game=dom.window.document.getElementById('game').cloneNode(true);game.querySelectorAll('.hidden').forEach(node=>node.remove());const attributes=[...game.querySelectorAll('*')].flatMap(node=>['aria-label','title','placeholder'].map(name=>node.getAttribute(name)||''));return `${game.textContent} ${attributes.join(' ')}`.replace(/\s+/g,' ').toLocaleLowerCase();}
@@ -147,7 +156,7 @@ test('Voice Trial has audio, no hints or pool, and mastery slots in the next wor
   assertTargetHidden(dom,'Machine');
   assert.ok(dom.window.document.getElementById('hint-btn').classList.contains('hidden'));
   assert.equal(dom.window.document.querySelectorAll('.letter').length,0);
-  dom.window.document.getElementById('audio-btn').click();assert.match(spoken[0].text,/Machine/);
+  dom.window.document.getElementById('audio-btn').click();assert.equal(spoken.length,1);assert.equal(spoken[0].text,'Machine');
   type(dom,'Machine');dom.window.document.getElementById('check-btn').click();
   const persisted=JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1'));
   assert.deepEqual(persisted.mastered,['Machine']);
@@ -221,4 +230,29 @@ test('completion rewards all trials, caps hearts at ten, and audio is free',()=>
     doc.getElementById('check-btn').click();assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).hearts,Math.min(hearts+1,10));
     assert.deepEqual(errors,[]);dom.window.close();
   }
+});
+
+test('Hear word speaks only the target once per click, including homophones and Spanish',()=>{
+  for(const word of ['Machine','their','Mom','empresa']){
+    const {dom,spoken}=createGame(baseSave({active:[word],progress:{[word]:2}}));
+    assert.equal(spoken.length,0);
+    for(let count=1;count<=2;count++){
+      dom.window.document.getElementById('audio-btn').click();
+      assert.equal(spoken.length,count);assert.equal(spoken.at(-1).text,word);
+    }
+    assert.equal(spoken[0].lang,word==='empresa'?'es-US':'en-US');dom.window.close();
+  }
+});
+test('Voice keyboard supports editing, case, phrases and accents without native input',()=>{
+  const {dom,errors}=createGame(baseSave({progress:{Machine:2}})),doc=dom.window.document;
+  assert.equal(doc.querySelectorAll('#answer-area input, #answer-area textarea, #answer-area [contenteditable]').length,0);
+  type(dom,"Mom's café-au lait");
+  assert.equal(doc.getElementById('spell-input').textContent,"Mom's café-au lait");
+  doc.querySelector('[aria-label="Backspace"]').click();
+  assert.equal(doc.getElementById('spell-input').textContent,"Mom's café-au lai");
+  type(dom,'Machine');doc.getElementById('check-btn').click();
+  const answer=doc.getElementById('spell-input').textContent;
+  doc.querySelector('[data-character="x"]').click();
+  assert.equal(doc.getElementById('spell-input').textContent,answer);
+  assert.deepEqual(errors,[]);dom.window.close();
 });

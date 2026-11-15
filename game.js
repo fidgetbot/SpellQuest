@@ -7,17 +7,6 @@ const TRIALS=[
   {name:'Fading Script',reward:2},
   {name:'Voice Trial',reward:3}
 ];
-const CONTEXTS={
-  Accept:'I accept your invitation.',except:'Everyone came except the dragon.',
-  "It's":'It is raining, so it’s time to go inside.',its:'The dragon spread its wings.',
-  There:'Put the treasure over there.',"they're":'They are ready, so they’re opening the gate.',their:'The heroes packed their supplies.',"there's":'There is a jewel, so there’s light in the cave.',theirs:'That victory is theirs.',
-  Your:'Your sword is beside the door.',"you're":'You are brave, so you’re ready for the quest.',
-  Meet:'We will meet at the castle.',meat:'The wolf ate a piece of meat.',Death:'The story tells of the king’s death.',deaf:'The old wizard is deaf and cannot hear.',
-  Seen:'I have seen that jewel before.',Scene:'The final scene takes place in a castle.',Which:'Which path should we follow?',Witch:'The witch carried a silver wand.',
-  Ate:'The dragon ate its breakfast.',Heard:'I heard a strange sound.',Hole:'The rabbit escaped through a hole.',Flower:'A blue flower grew beside the path.',Throne:'The queen sat upon the throne.',
-  Peace:'The kingdoms finally made peace.',Piece:'She found one piece of the map.',Desert:'The dry desert stretched for miles.',Dessert:'We ate cake for dessert.',
-  Mom:'I asked Mom to help me.',mom:'My mom helped me.',calves:'The cows stayed close to their calves.',calf:'The young calf followed its mother.'
-};
 const SPANISH=new Set(['empresa','abrigo','nevera','tal vez','volver']);
 const PLACE_FIRST=['Whispering','Silver','Crooked','Riddle','Thorn','Mirror','Moonlit','Shadow','Twin','Golden','Crystal','Emerald'];
 const PLACE_LAST=['Gate','Meadow','Bridge','Woods','Keep','Caves','Stage','Fen','Towers','Library','Hall','Sanctum'];
@@ -93,11 +82,34 @@ function renderFadingScript(word){
   $('answer-area').innerHTML=`<div class="missing-word">${[...word].map((character,position)=>missing.includes(position)?`<input maxlength="1" autocomplete="off" data-position="${position}" aria-label="Missing letter ${missing.indexOf(position)+1}">`:`<span>${character===' '?'&nbsp;':escapeHtml(character)}</span>`).join('')}</div>`;
   const inputs=[...document.querySelectorAll('.missing-word input')];inputs.forEach((input,index)=>input.addEventListener('input',()=>{input.value=input.value.replace(/[^A-Za-zÀ-ÿ]/g,'').slice(-1);input.classList.remove('wrong');if(input.value&&inputs[index+1])inputs[index+1].focus();const values=new Map(inputs.map(field=>[Number(field.dataset.position),field.value]));state.answer=[...word].map((character,position)=>values.has(position)?values.get(position):character).join('');}));inputs[0]?.focus();
 }
-function renderVoiceTrial(){$('answer-area').innerHTML='<div class="voice-entry"><div class="sound-rings" aria-hidden="true"><i></i><i></i><i></i></div><label for="spell-input">Type exactly what you hear</label><input id="spell-input" class="spell-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>';const input=$('spell-input');input.addEventListener('input',()=>{input.value=input.value.replace(/[^A-Za-zÀ-ÿ\-'’ ]/g,'').replace(/\s{2,}/g,' ');state.answer=input.value;});input.focus();}
-function spokenPrompt(word){return CONTEXTS[word]?`Listen to the word in this sentence. ${CONTEXTS[word]} Spell the word: ${word}.`: `Spell the word: ${word}. ${word}.`;}
+function renderVoiceTrial(){
+  $('answer-area').innerHTML='<div class="voice-entry"><div class="sound-rings" aria-hidden="true"><i></i><i></i><i></i></div><p id="answer-label">Use the keyboard below to write what you hear</p><div id="spell-input" class="spell-input" role="status" aria-labelledby="answer-label" aria-live="polite"></div><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div></div>';
+  let shifted=false;
+  const keyboard=$('voice-keyboard'),letterButtons=[];
+  function update(){ $('spell-input').textContent=state.answer; }
+  function addKey(row,label,action){
+    const button=document.createElement('button');button.type='button';button.className='voice-key';button.textContent=label;
+    button.onclick=()=>{if(!state.locked)action();};row.append(button);return button;
+  }
+  for(const letters of ['qwertyuiop','asdfghjkl','zxcvbnm','áéíóúüñ']){
+    const row=document.createElement('div');row.className='keyboard-row';keyboard.append(row);
+    for(const letter of letters){
+      const button=addKey(row,letter,()=>{state.answer+=shifted?letter.toLocaleUpperCase():letter;update();});
+      button.dataset.character=letter;letterButtons.push(button);
+    }
+  }
+  const row=document.createElement('div');row.className='keyboard-row keyboard-actions';keyboard.append(row);
+  const shift=addKey(row,'Shift',()=>{shifted=!shifted;shift.setAttribute('aria-pressed',String(shifted));for(const button of letterButtons)button.textContent=shifted?button.dataset.character.toLocaleUpperCase():button.dataset.character;});
+  shift.setAttribute('aria-pressed','false');
+  addKey(row,"'",()=>{state.answer+="'";update();}).setAttribute('aria-label','Apostrophe');
+  addKey(row,'-',()=>{state.answer+='-';update();}).setAttribute('aria-label','Hyphen');
+  addKey(row,'Space',()=>{state.answer+=' ';update();});
+  addKey(row,'⌫',()=>{state.answer=[...state.answer].slice(0,-1).join('');update();}).setAttribute('aria-label','Backspace');
+  addKey(row,'Clear',()=>{state.answer='';update();});
+}
 function speakWord(){
   if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){$('feedback').textContent='Audio is unavailable in this browser. Ask an adult to read the word aloud.';$('feedback').className='feedback try';return;}
-  window.speechSynthesis.cancel();const utterance=new window.SpeechSynthesisUtterance(spokenPrompt(currentWord()));utterance.rate=.78;utterance.pitch=1;utterance.lang=SPANISH.has(currentWord())?'es-US':'en-US';window.speechSynthesis.speak(utterance);$('audio-btn').classList.add('speaking');setTimeout(()=>$('audio-btn').classList.remove('speaking'),900);
+  window.speechSynthesis.cancel();const utterance=new window.SpeechSynthesisUtterance(currentWord());utterance.rate=.78;utterance.pitch=1;utterance.lang=SPANISH.has(currentWord())?'es-US':'en-US';window.speechSynthesis.speak(utterance);$('audio-btn').classList.add('speaking');setTimeout(()=>$('audio-btn').classList.remove('speaking'),900);
 }
 function spendHeart(){const before=state.hearts;state.hearts=Math.max(0,state.hearts-1);save();renderCampaign();return before-state.hearts;}
 function costText(spent){return spent?' −1 heart.':' No hearts left—keep trying to earn one back.';}
@@ -142,4 +154,4 @@ function continueCampaign(){
 
 if(loadedSave&&loadedSave.mastered.length<WORD_BANK.length)$('continue-btn').classList.remove('hidden');
 $('start-btn').onclick=()=>begin(false);$('continue-btn').onclick=()=>begin(true);$('hint-btn').onclick=hint;$('audio-btn').onclick=speakWord;$('check-btn').onclick=check;$('next-btn').onclick=nextChallenge;$('replay-btn').onclick=continueCampaign;
-document.addEventListener('keydown',event=>{if(event.key==='Enter'&&!$('game').classList.contains('hidden')){if(!$('next-btn').classList.contains('hidden'))nextChallenge();else check();}});
+document.addEventListener('keydown',event=>{if(event.target.closest?.('#voice-keyboard'))return;if(event.key==='Enter'&&!$('game').classList.contains('hidden')){if(!$('next-btn').classList.contains('hidden'))nextChallenge();else check();}});
