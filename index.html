@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#18233c">
   <title>Word Quest: The Shattered Lexicon</title>
-  <link rel="stylesheet" href="styles.css?v=20261114.2">
+  <link rel="stylesheet" href="styles.css?v=20261114.3">
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -16,7 +16,7 @@
         <h1>Word Quest</h1>
       </div>
       <div class="stats" aria-label="Quest progress">
-        <span><b id="level">1</b> Level</span>
+        <span><b id="mastered-count">0 / 0</b> Mastered</span>
         <span><b id="stars">0</b> Stars</span>
         <span><b id="streak">0</b> Streak</span>
       </div>
@@ -26,21 +26,23 @@
       <div class="crest" aria-hidden="true">W</div>
       <p class="eyebrow">A spelling adventure</p>
       <h2>The kingdom's words have been scattered.</h2>
-      <p>Rebuild each enchanted word to restore the lost places of Lexicon. Every victory moves your hero farther along the trail.</p>
+      <p>Train each word through three increasingly difficult trials. Spell it from memory in the final Voice Trial to win its jewel and restore the kingdom.</p>
       <button id="start-btn" class="primary">Begin the quest</button>
       <button id="continue-btn" class="secondary hidden">Continue saved quest</button>
     </section>
 
     <section id="game" class="hidden">
       <div class="quest-grid">
-        <aside class="map panel" aria-label="Adventure map">
+        <aside class="map panel" aria-label="Mastery campaign">
           <div class="map-heading">
-            <p class="eyebrow">Quest map</p>
-            <span id="map-count">0 / 13</span>
+            <p class="eyebrow">Active spellbook</p>
+            <span id="active-count">10 active</span>
           </div>
-          <div id="map-path" class="map-path"></div>
+          <div id="active-words" class="active-words"></div>
+          <div class="vault-heading"><span>Victory vault</span><small id="queue-count"></small></div>
+          <div id="jewel-vault" class="jewel-vault"></div>
           <div class="hero-card">
-            <div class="hero" aria-hidden="true">♞</div>
+            <div class="hero" aria-hidden="true">◆</div>
             <div><b id="location-name">Whispering Gate</b><small id="quest-note">The first rune waits.</small></div>
           </div>
         </aside>
@@ -55,6 +57,7 @@
           <div id="feedback" class="feedback" role="status"></div>
           <div class="actions">
             <button id="hint-btn" class="secondary">Use a hint</button>
+            <button id="audio-btn" class="secondary hidden">Hear word</button>
             <button id="check-btn" class="primary">Check answer</button>
             <button id="next-btn" class="primary hidden">Next challenge now</button>
           </div>
@@ -65,12 +68,13 @@
     <section id="ending" class="panel ending hidden">
       <div class="crest gold" aria-hidden="true">★</div>
       <p class="eyebrow">Quest complete</p>
-      <h2>The Lexicon shines again!</h2>
+      <h2 id="ending-title">Chapter complete!</h2>
       <p id="ending-copy"></p>
       <div id="word-report" class="word-report"></div>
-      <button id="replay-btn" class="primary">Play again</button>
+      <button id="replay-btn" class="primary">Begin next chapter</button>
     </section>
   </main>
-  <script src="game.js?v=20261114.2"></script>
+  <script src="words.js?v=20261114.3"></script>
+  <script src="game.js?v=20261114.3"></script>
 </body>
 </html>
