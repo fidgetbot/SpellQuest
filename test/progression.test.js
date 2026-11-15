@@ -12,6 +12,7 @@ function createGame(saved=null){
   dom.window.speechSynthesis={cancel(){},speak(utterance){spoken.push(utterance);}};
   if(saved)dom.window.localStorage.setItem('spellQuestMasteryV1',JSON.stringify(saved));
   dom.window.eval(fs.readFileSync(path.join(root,'words.js'),'utf8'));
+  dom.window.eval(fs.readFileSync(path.join(root,'definitions.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'game.js'),'utf8'));
   dom.window.document.getElementById(saved?'continue-btn':'start-btn').click();
   return {dom,errors,spoken};
@@ -65,6 +66,12 @@ test('wrong checks and hints spend Focus while blank checks are free',()=>{
   assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).focus,7);
   assert.equal(dom.window.document.getElementById('focus').textContent,'7 / 10');
   assert.ok(firstSlot.classList.contains('wrong'));
+  firstSlot.click();
+  assert.ok(!firstSlot.classList.contains('wrong'));
+  [...dom.window.document.querySelectorAll('.letter')].find(button=>button.textContent.toLocaleLowerCase()!=='m').click();
+  assert.ok(!firstSlot.classList.contains('wrong'));
+  dom.window.document.getElementById('check-btn').click();
+  assert.ok(firstSlot.classList.contains('wrong'));
   assert.deepEqual(errors,[]);dom.window.close();
 });
 
@@ -73,7 +80,7 @@ test('a correct Rune Path advances the roster and fully renders the next challen
   const firstSlot=dom.window.document.querySelector('.slot');
   const wrongButton=[...dom.window.document.querySelectorAll('.letter')].find(candidate=>candidate.textContent.toLocaleLowerCase()!=='m');
   wrongButton.click();
-  assert.ok(firstSlot.classList.contains('wrong'));
+  assert.ok(!firstSlot.classList.contains('wrong'));
   firstSlot.click();
   assert.ok(!firstSlot.classList.contains('wrong'));
   for(const character of 'Machine'){
@@ -101,6 +108,12 @@ test('a word returning for its second trial renders the harder Fading Script',()
   assertTargetHidden(dom,'Machine');
   const input=dom.window.document.querySelector('.missing-word input'),expected='Machine'[Number(input.dataset.position)];
   input.value=expected.toLocaleLowerCase()==='z'?'x':'z';input.dispatchEvent(new dom.window.Event('input'));
+  assert.ok(!input.classList.contains('wrong'));
+  dom.window.document.getElementById('check-btn').click();
+  assert.ok(input.classList.contains('wrong'));
+  input.value=expected.toLocaleLowerCase()==='x'?'z':'x';input.dispatchEvent(new dom.window.Event('input'));
+  assert.ok(!input.classList.contains('wrong'));
+  dom.window.document.getElementById('check-btn').click();
   assert.ok(input.classList.contains('wrong'));
   input.value=expected;input.dispatchEvent(new dom.window.Event('input'));
   assert.ok(!input.classList.contains('wrong'));
@@ -166,4 +179,15 @@ test('a chapter ending stays locked until its tenth word passes the Voice Trial'
   assert.ok(dom.window.document.getElementById('ending').classList.contains('hidden'));
   assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).chapterStart,10);
   assert.deepEqual(errors,[]);dom.window.close();
+});
+
+test('every word has a local definition and each trial restores it beneath the heading',()=>{
+  for(const tier of [0,1,2]){
+    const {dom}=createGame(baseSave({progress:{Machine:tier}}));
+    for(const word of dom.window.WORD_BANK)assert.ok(dom.window.WORD_DEFINITIONS[word],`Missing definition: ${word}`);
+    const heading=dom.window.document.querySelector('#prompt-area h2');
+    assert.equal(heading.nextElementSibling.className,'word-definition');
+    assert.equal(heading.nextElementSibling.textContent,'A device with parts that work together to do a job.');
+    assertTargetHidden(dom,'Machine');dom.window.close();
+  }
 });

@@ -26,13 +26,15 @@ A word is mastered only after a correct Voice Trial. Incorrect answers never adv
 
 Advancement requires a clean visit: the first nonblank submitted answer must be correct and no hint may have been used. After any wrong submission or hint, later correction completes only a practice visit; the word rotates back into later challenges at the same tier. This clean-visit gate also applies to the Voice Trial, so a jewel can never be earned after guessing incorrectly earlier in that visit.
 
-During Rune Path and Fading Script, each incorrect letter is marked red immediately at its position and the mark clears when that letter is removed or corrected.
+During Rune Path and Fading Script, incorrect letters are marked red only when Check answer (or Enter) submits the answer. Editing or removing a marked letter clears its mark; newly entered letters remain neutral until another submission.
 
 Focus discourages blind guessing without blocking practice. A submitted nonblank wrong answer costs 2 Focus, requesting a hint costs 1 Focus, and a correct answer restores 1 Focus up to the maximum of 10. Blank checks are free, and zero Focus never prevents another attempt.
 
 After every successful trial, the game displays its complete story blurb and waits indefinitely. Progression occurs only when the player activates the visible Continue Story control; success must never schedule automatic advancement.
 
 Homophones, contractions, and capitalization lessons use an audible context sentence in the Voice Trial. Other entries are spoken twice. Spanish entries use a Spanish speech locale when supported.
+
+Child-friendly definitions appear immediately beneath the challenge heading in all three trials, without revealing the target spelling. The complete current bank has local definitions in `definitions.js`; no network lookup is required.
 
 ## Campaign and victories
 
