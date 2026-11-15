@@ -44,6 +44,28 @@ button:disabled { cursor: default; opacity: .5; transform: none; }
 .map { padding: 20px; }
 .map-heading, .challenge-top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: .84rem; }
 .map-heading .eyebrow { margin: 0; }
+.quest-map-art { position: relative; height: 255px; margin: 18px 0; overflow: hidden; border: 1px solid #50638b; border-radius: 17px; background: linear-gradient(#162951 0 50%, #263e3b 51% 66%, #172c29 67%); box-shadow: inset 0 0 40px #050914aa, 0 12px 25px #05091466; isolation: isolate; }
+.quest-map-art::before { content: ''; position: absolute; inset: 50% 0 0; background: radial-gradient(ellipse at 70% 100%, #4f5b37 0 18%, transparent 19%), radial-gradient(ellipse at 20% 75%, #35462f 0 25%, transparent 26%); opacity: .8; }
+.map-moon { position: absolute; z-index: -1; width: 42px; height: 42px; right: 18px; top: 14px; border-radius: 50%; background: #ffedaa; box-shadow: 0 0 25px #ffe08c88; }
+.map-mountain { position: absolute; z-index: -1; bottom: 43%; width: 0; height: 0; border-left: 78px solid transparent; border-right: 78px solid transparent; border-bottom: 108px solid #263655; filter: drop-shadow(12px 8px #101a31aa); }
+.map-mountain::after { content: ''; position: absolute; left: -24px; top: 40px; border-left: 24px solid transparent; border-right: 24px solid transparent; border-bottom: 35px solid #d8e3e5; transform: rotate(180deg); opacity: .72; }
+.mountain-one { left: -40px; }
+.mountain-two { left: 76px; transform: scale(.72); transform-origin: bottom; opacity: .82; }
+.map-castle { position: absolute; z-index: 1; left: 42%; top: 16px; width: 48px; height: 50px; background: #8090a3; border: 3px solid #36465f; box-shadow: 0 8px 0 #26354b; }
+.map-castle::before, .map-castle::after { content: ''; position: absolute; width: 17px; height: 63px; bottom: -3px; background: #71839b; border: 3px solid #36465f; }
+.map-castle::before { left: -13px; }.map-castle::after { right: -13px; }
+.map-castle i { position: absolute; z-index: 2; width: 8px; height: 14px; bottom: 0; left: 17px; border-radius: 8px 8px 0 0; background: #18253b; box-shadow: 0 0 8px #ffc85777; }
+.map-forest { position: absolute; z-index: 1; left: 5px; bottom: 28px; display: flex; align-items: end; gap: 2px; }
+.map-forest i { display: block; width: 24px; height: 36px; clip-path: polygon(50% 0, 100% 100%, 0 100%); background: linear-gradient(90deg,#18372e,#2f6651); filter: drop-shadow(3px 5px #0b1d19aa); }
+.map-forest i:nth-child(2), .map-forest i:nth-child(4) { height: 48px; width: 29px; }
+.map-trail { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.map-trail path { fill: none; stroke: #d5b477; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 3; filter: drop-shadow(0 2px #624c2c); }
+.map-nodes { position: absolute; z-index: 3; inset: 0; }
+.quest-node { position: absolute; left: var(--x); top: var(--y); width: 25px; height: 25px; transform: translate(-50%,-50%); display: grid; place-items: center; border: 2px solid #8492ad; border-radius: 50%; background: #18233c; color: #d7dfed; font-size: .67rem; font-weight: 900; box-shadow: 0 3px 0 #0a1020, 0 0 0 3px #0c142777; }
+.quest-node.tier-1 { border-color: #6ca8ff; background: #203d69; }
+.quest-node.tier-2 { border-color: #b98cff; background: #4b2d69; box-shadow: 0 3px 0 #21102f, 0 0 12px #b98cff55; }
+.quest-node.current { width: 35px; height: 35px; border-color: var(--gold); background: #5b4514; color: #fff3c4; font-size: 1.15rem; box-shadow: 0 4px 0 #382709, 0 0 18px #ffc857aa; animation: hero-bob 1.2s ease-in-out infinite alternate; }
+@keyframes hero-bob { to { transform: translate(-50%,calc(-50% - 4px)); } }
 .active-words { display: grid; gap: 6px; margin: 18px 0; }
 .active-word { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 34px; padding: 6px 9px; border: 1px solid #344464; border-radius: 9px; background: #121c33; color: var(--muted); }
 .active-word.current { color: var(--ink); border-color: var(--gold); background: #3a311d; box-shadow: 0 0 14px #ffc85722; }

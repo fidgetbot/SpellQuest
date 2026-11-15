@@ -19,12 +19,13 @@ const CONTEXTS={
 const SPANISH=new Set(['empresa','abrigo','nevera','tal vez','volver']);
 const PLACE_FIRST=['Whispering','Silver','Crooked','Riddle','Thorn','Mirror','Moonlit','Shadow','Twin','Golden','Crystal','Emerald'];
 const PLACE_LAST=['Gate','Meadow','Bridge','Woods','Keep','Caves','Stage','Fen','Towers','Library','Hall','Sanctum'];
-const state={active:[],queue:[],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:ACTIVE_LIMIT,stars:0,streak:0,focus:10,attempts:{},answer:'',locked:false,lastMastered:false};
+const MAP_POSITIONS=[[8,78],[24,65],[43,76],[62,64],[82,73],[88,48],[69,39],[49,50],[29,35],[47,17]];
+const state={active:[],queue:[],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:ACTIVE_LIMIT,stars:0,streak:0,focus:10,attempts:{},answer:'',locked:false,lastMastered:false,visitFailed:false};
 const $=id=>document.getElementById(id);
 const shuffle=array=>[...array].sort(()=>Math.random()-.5);
 const isLetter=character=>/^[A-Za-zÀ-ÿ]$/.test(character);
 const hashWord=word=>[...word].reduce((hash,character)=>((hash*31)+character.charCodeAt(0))>>>0,2166136261);
-const placeFor=word=>{const hash=hashWord(word);return `${PLACE_FIRST[hash%PLACE_FIRST.length]} ${PLACE_LAST[Math.floor(hash/13)%PLACE_LAST.length]}`;};
+const placeFor=word=>{const hash=hashWord(word),target=word.toLocaleLowerCase();for(let offset=0;offset<PLACE_FIRST.length*PLACE_LAST.length;offset++){const place=`${PLACE_FIRST[(hash+offset)%PLACE_FIRST.length]} ${PLACE_LAST[(Math.floor(hash/13)+offset)%PLACE_LAST.length]}`;if(!place.toLocaleLowerCase().includes(target))return place;}return 'Hidden Sanctuary';};
 const jewelHue=word=>hashWord(word)%360;
 
 function freshState(){
@@ -51,27 +52,27 @@ function normalize(value,caseSensitive=false){const cleaned=value.replace(/[’�
 function answerMatches(answer,word){return normalize(answer,word==='Mom'||word==='mom')===normalize(word,word==='Mom'||word==='mom');}
 
 function begin(resume=false){
-  Object.assign(state,resume&&loadedSave?loadedSave:freshState(),{answer:'',locked:false,lastMastered:false});
+  Object.assign(state,resume&&loadedSave?loadedSave:freshState(),{answer:'',locked:false,lastMastered:false,visitFailed:false});
   $('intro').classList.add('hidden');$('ending').classList.add('hidden');$('game').classList.remove('hidden');
   renderCampaign();loadChallenge();
 }
 function renderCampaign(){
   $('mastered-count').textContent=`${state.mastered.length} / ${WORD_BANK.length}`;$('stars').textContent=state.stars;$('streak').textContent=state.streak;$('focus').textContent=`${state.focus} / 10`;
   $('active-count').textContent=`${state.active.length} active`;$('queue-count').textContent=state.queue.length?`${state.queue.length} waiting`:'No words waiting';
-  $('active-words').innerHTML=state.active.map((word,index)=>{const tier=state.progress[word]||0;return `<div class="active-word ${index===state.cursor?'current':''}"><span class="active-name">${escapeHtml(word)}</span><span class="trial-dots" aria-label="${tier} of 3 trials passed">${[0,1,2].map(n=>`<i class="${n<tier?'passed':''}"></i>`).join('')}</span></div>`;}).join('');
-  $('jewel-vault').innerHTML=state.mastered.length?state.mastered.slice(-12).map(word=>jewelMarkup(word,true)).join(''):'<p class="empty-vault">Victory jewels will appear here.</p>';
-  if(state.active.length){$('location-name').textContent=placeFor(currentWord());$('quest-note').textContent=`Trial ${currentTier()+1} of 3 for “${currentWord()}”`;}
+  $('map-nodes').innerHTML=state.active.map((word,index)=>{const [x,y]=MAP_POSITIONS[index],tier=state.progress[word]||0,current=index===state.cursor;return `<div class="quest-node tier-${tier} ${current?'current':''}" data-index="${index}" style="--x:${x}%;--y:${y}%" aria-label="Quest ${index+1}, trial ${tier+1}"><span>${current?'♞':index+1}</span></div>`;}).join('');
+  $('jewel-vault').innerHTML=state.mastered.length?state.mastered.slice(-12).map(word=>jewelMarkup(word,true)).join(''):'<p class="empty-vault">Rewards will appear here.</p>';
+  if(state.active.length){$('location-name').textContent=placeFor(currentWord());$('quest-note').textContent=`Trial ${currentTier()+1} of 3 · ${TRIALS[currentTier()].name}`;}
 }
 function escapeHtml(value){return value.replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));}
 function jewelMarkup(word,labeled=false){return `<div class="jewel-win" style="--hue:${jewelHue(word)}" title="${escapeHtml(word)}"><div class="jewel"><span></span></div>${labeled?`<b>${escapeHtml(word)}</b>`:''}</div>`;}
 
 function loadChallenge(){
-  state.answer='';state.locked=false;state.lastMastered=false;
+  state.answer='';state.locked=false;state.lastMastered=false;state.visitFailed=false;
   const word=currentWord(),tier=currentTier(),trial=TRIALS[tier];
   $('feedback').textContent='';$('feedback').className='feedback';$('next-btn').classList.add('hidden');$('check-btn').classList.remove('hidden');
   $('hint-btn').classList.toggle('hidden',tier===2);$('hint-btn').disabled=false;$('audio-btn').classList.toggle('hidden',tier!==2);$('audio-btn').disabled=false;
-  $('challenge-type').textContent=trial.name;$('round-count').textContent=`${state.mastered.length} jewels won · ${state.queue.length} queued`;
-  $('prompt-area').innerHTML=tier===2?'<p class="trial-kicker">Final mastery trial</p><h2>Listen and spell</h2><p>No hints. No letter pool. Replay the spoken prompt whenever you need.</p>':`<p class="trial-kicker">Trial ${tier+1} of 3</p><h2>${escapeHtml(word)}</h2><p>${tier===0?'Choose every rune in order.':'More of the spelling has faded. Restore it.'}</p>`;
+  $('challenge-type').textContent=trial.name;$('round-count').textContent=`${state.mastered.length} victories won · ${state.queue.length} queued`;
+  $('prompt-area').innerHTML=tier===2?'<p class="trial-kicker">Final mastery trial</p><h2>Listen and write</h2><p>No hints. No letter pool. Replay the spoken prompt whenever you need.</p>':`<p class="trial-kicker">Trial ${tier+1} of 3</p><h2>${tier===0?'Rebuild the enchanted word':'Restore the faded word'}</h2><p>${tier===0?'Choose every rune in order.':'More of the spelling has faded. Restore it.'}</p>`;
   if(tier===0)renderRunePath(word);else if(tier===1)renderFadingScript(word);else renderVoiceTrial();
 }
 function wordSlots(word,missingPositions){return [...word].map((character,position)=>missingPositions.has(position)?`<button class="slot" data-position="${position}" aria-label="Empty rune ${position+1}"></button>`:`<span class="fixed-slot">${character===' '?'&nbsp;':escapeHtml(character)}</span>`).join('');}
@@ -79,7 +80,8 @@ function assembledAnswer(word){const slots=new Map([...document.querySelectorAll
 function renderRunePath(word){
   const letterPositions=[...word].map((character,position)=>({character,position})).filter(item=>isLetter(item.character));
   $('answer-area').innerHTML=`<div class="slots">${wordSlots(word,new Set(letterPositions.map(item=>item.position)))}</div><div class="letter-bank" id="bank"></div>`;
-  shuffle(letterPositions).forEach(rune=>{const button=document.createElement('button');button.className='letter';button.textContent=rune.character;button.dataset.id=rune.position;button.onclick=()=>{if(state.locked)return;const slot=[...document.querySelectorAll('.slot')].find(candidate=>!candidate.textContent);if(!slot)return;slot.textContent=rune.character;slot.classList.add('filled');slot.classList.toggle('wrong',rune.character.toLocaleLowerCase()!==word[Number(slot.dataset.position)].toLocaleLowerCase());slot.dataset.source=rune.position;button.classList.add('used');button.disabled=true;state.answer=assembledAnswer(word);};$('bank').appendChild(button);});
+  let runes=shuffle(letterPositions);const ordered=letterPositions.map(rune=>rune.character).join('');if(runes.length>1&&runes.map(rune=>rune.character).join('')===ordered)runes=[...runes.slice(1),runes[0]];
+  runes.forEach(rune=>{const button=document.createElement('button');button.className='letter';button.textContent=rune.character;button.dataset.id=rune.position;button.onclick=()=>{if(state.locked)return;const slot=[...document.querySelectorAll('.slot')].find(candidate=>!candidate.textContent);if(!slot)return;slot.textContent=rune.character;slot.classList.add('filled');slot.classList.toggle('wrong',rune.character.toLocaleLowerCase()!==word[Number(slot.dataset.position)].toLocaleLowerCase());slot.dataset.source=rune.position;button.classList.add('used');button.disabled=true;state.answer=assembledAnswer(word);};$('bank').appendChild(button);});
   document.querySelectorAll('.slot').forEach(slot=>slot.onclick=()=>{if(!slot.textContent||state.locked)return;const button=[...document.querySelectorAll('.letter')].find(candidate=>candidate.dataset.id===slot.dataset.source);button.classList.remove('used');button.disabled=false;slot.textContent='';slot.classList.remove('filled','wrong');state.answer=assembledAnswer(word);});
 }
 function renderFadingScript(word){
@@ -96,17 +98,18 @@ function speakWord(){
 function spendFocus(cost){const before=state.focus;state.focus=Math.max(0,state.focus-cost);save();renderCampaign();return before-state.focus;}
 function costText(spent){return spent?` −${spent} Focus.`:' Focus is already empty.';}
 function hint(){
-  if(currentTier()===2)return;const word=currentWord();$('hint-btn').disabled=true;const spent=spendFocus(1);
+  if(currentTier()===2)return;const word=currentWord();state.visitFailed=true;$('hint-btn').disabled=true;const spent=spendFocus(1);
   if(currentTier()===0){const first=[...document.querySelectorAll('.slot')].find(slot=>!slot.textContent);$('feedback').textContent=(first?`The next rune is “${word[Number(first.dataset.position)]}”.`:'All runes are placed.')+costText(spent);}
   else{const first=[...document.querySelectorAll('.missing-word input')].find(input=>!input.value);if(first){first.value=word[Number(first.dataset.position)];first.dispatchEvent(new Event('input'));}$('feedback').textContent='One faded rune has returned.'+costText(spent);}
   $('feedback').className='feedback try';
 }
 function check(){
   if(state.locked)return;const word=currentWord(),tier=currentTier();state.attempts[word]=(state.attempts[word]||0)+1;
-  if(!answerMatches(state.answer,word)){state.streak=0;const spent=state.answer?spendFocus(2):0;const retry=tier===2?'Not yet. Listen once more and try again.':'Not yet. Study the red letters and try once more.';$('feedback').textContent=state.answer?retry+costText(spent):'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
-  state.locked=true;state.streak++;state.stars+=TRIALS[tier].reward;state.focus=Math.min(10,state.focus+1);
-  if(tier<2){state.progress[word]=tier+1;$('feedback').textContent=tier===0?`The runes of ${placeFor(word)} begin to glow. “${word}” is ready for a harder trial.`:`A hidden path opens at ${placeFor(word)}. One final Voice Trial remains for “${word}”.`;state.lastMastered=false;}
-  else{state.mastered.push(word);state.active.splice(state.cursor,1);delete state.progress[word];if(state.queue.length)state.active.push(state.queue.shift());state.lastMastered=true;$('feedback').innerHTML=`<div class="victory-reveal">${jewelMarkup(word)}<div><strong>Victory at ${placeFor(word)}!</strong><small>“${escapeHtml(word)}” mastered · jewel earned</small></div></div>`;}
+  if(!answerMatches(state.answer,word)){state.streak=0;if(state.answer)state.visitFailed=true;const spent=state.answer?spendFocus(2):0;const retry=tier===2?'Not yet. Listen once more and try again.':'Not yet. Study the red letters and try once more.';$('feedback').textContent=state.answer?retry+costText(spent):'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
+  state.locked=true;state.focus=Math.min(10,state.focus+1);
+  if(state.visitFailed){state.streak=0;state.lastMastered=false;$('feedback').textContent=`Practice complete. The magic around “${word}” is steadier, but it must return later for a clean first-try victory.`;}
+  else if(tier<2){state.streak++;state.stars+=TRIALS[tier].reward;state.progress[word]=tier+1;$('feedback').textContent=tier===0?`The runes of ${placeFor(word)} begin to glow. “${word}” is ready for a harder trial.`:`A hidden path opens at ${placeFor(word)}. One final Voice Trial remains for “${word}”.`;state.lastMastered=false;}
+  else{state.streak++;state.stars+=TRIALS[tier].reward;state.mastered.push(word);state.active.splice(state.cursor,1);delete state.progress[word];if(state.queue.length)state.active.push(state.queue.shift());state.lastMastered=true;$('feedback').innerHTML=`<div class="victory-reveal">${jewelMarkup(word)}<div><strong>Victory at ${placeFor(word)}!</strong><small>“${escapeHtml(word)}” mastered · jewel earned</small></div></div>`;}
   $('feedback').className='feedback good';$('check-btn').classList.add('hidden');$('next-btn').classList.remove('hidden');$('hint-btn').disabled=true;$('audio-btn').disabled=true;save();renderCampaign();
 }
 function nextChallenge(){

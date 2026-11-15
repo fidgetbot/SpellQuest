@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#18233c">
   <title>Word Quest: The Shattered Lexicon</title>
-  <link rel="stylesheet" href="styles.css?v=20261114.4">
+  <link rel="stylesheet" href="styles.css?v=20261114.5">
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -34,12 +34,20 @@
 
     <section id="game" class="hidden">
       <div class="quest-grid">
-        <aside class="map panel" aria-label="Mastery campaign">
+        <aside class="map panel" aria-label="Graphical quest map">
           <div class="map-heading">
-            <p class="eyebrow">Active spellbook</p>
+            <p class="eyebrow">Quest map</p>
             <span id="active-count">10 active</span>
           </div>
-          <div id="active-words" class="active-words"></div>
+          <div class="quest-map-art" aria-label="Map of the ten active quests">
+            <div class="map-moon"></div>
+            <div class="map-mountain mountain-one"></div>
+            <div class="map-mountain mountain-two"></div>
+            <div class="map-castle"><i></i><i></i><i></i></div>
+            <div class="map-forest"><i></i><i></i><i></i><i></i></div>
+            <svg class="map-trail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M8,78 C17,72 18,67 24,65 S35,74 43,76 S54,67 62,64 S77,75 82,73 S92,61 88,48 S77,41 69,39 S58,48 49,50 S38,36 29,35 S38,20 47,17"/></svg>
+            <div id="map-nodes" class="map-nodes"></div>
+          </div>
           <div class="vault-heading"><span>Victory vault</span><small id="queue-count"></small></div>
           <div id="jewel-vault" class="jewel-vault"></div>
           <div class="hero-card">
@@ -75,7 +83,7 @@
       <button id="replay-btn" class="primary">Begin next chapter</button>
     </section>
   </main>
-  <script src="words.js?v=20261114.4"></script>
-  <script src="game.js?v=20261114.4"></script>
+  <script src="words.js?v=20261114.5"></script>
+  <script src="game.js?v=20261114.5"></script>
 </body>
 </html>

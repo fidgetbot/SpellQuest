@@ -24,6 +24,8 @@ Each word advances through exactly three trials:
 
 A word is mastered only after a correct Voice Trial. Incorrect answers never advance the word. Hints are available only in the first two trials. Replaying the spoken prompt is allowed and does not reduce mastery.
 
+Advancement requires a clean visit: the first nonblank submitted answer must be correct and no hint may have been used. After any wrong submission or hint, later correction completes only a practice visit; the word rotates back into later challenges at the same tier. This clean-visit gate also applies to the Voice Trial, so a jewel can never be earned after guessing incorrectly earlier in that visit.
+
 During Rune Path and Fading Script, each incorrect letter is marked red immediately at its position and the mark clears when that letter is removed or corrected.
 
 Focus discourages blind guessing without blocking practice. A submitted nonblank wrong answer costs 2 Focus, requesting a hint costs 1 Focus, and a correct answer restores 1 Focus up to the maximum of 10. Blank checks are free, and zero Focus never prevents another attempt.
@@ -37,6 +39,8 @@ Homophones, contractions, and capitalization lessons use an audible context sent
 - Each mastered word earns one deterministic jewel whose color is derived from the word itself.
 - The jewel is shown in the success moment and retained in the Victory Vault.
 - Each active word has a generated RPG location derived from the word itself, so locations and jewel identities stay stable across sessions.
+- The quest surface is a graphical RPG map with a winding trail, landscape landmarks, one persistent node per active word, tier styling, and a hero marker at the current node.
+- While a spelling challenge is active, the target word must never be visible elsewhere on the page—not in a roster, map node, status, instruction, tooltip, or accessibility label. The Rune Path shows only its shuffled pool, Fading Script shows only puzzle-retained letters, and the Voice Trial supplies the target through audio. The word may appear after a correct submission because the attempt has ended.
 - Each story chapter contains up to 10 mastery victories. Its ending remains locked until every chapter word has passed its Voice Trial.
 - Completing a chapter preserves cumulative jewels and opens the next chapter from the queue. Completing the entire bank produces the final Crown of Lexicon ending.
 
