@@ -24,6 +24,7 @@ const STORIES = [
 ];
 const TYPES = ['scramble','missing','choice'];
 const state = { index:0, stars:0, streak:0, attempts:{}, answer:'', selected:null, hint:false, locked:false };
+let advanceTimer = null;
 const $ = id => document.getElementById(id);
 const shuffle = a => [...a].sort(() => Math.random() - .5);
 const save = () => localStorage.setItem('wordQuestSave', JSON.stringify({index:state.index,stars:state.stars,attempts:state.attempts}));
@@ -37,7 +38,7 @@ function begin(resume=false){
   renderMap(); loadChallenge(); updateStats();
 }
 function updateStats(){
-  $('level').textContent = Math.floor(state.index/3)+1; $('stars').textContent=state.stars; $('streak').textContent=state.streak;
+  $('level').textContent = Math.min(state.index+1, WORDS.length); $('stars').textContent=state.stars; $('streak').textContent=state.streak;
   $('map-count').textContent=`${state.index} / ${WORDS.length}`;
 }
 function renderMap(){
@@ -61,7 +62,8 @@ function renderScramble(word){
   document.querySelectorAll('.slot').forEach(s=>s.onclick=()=>{ if(!s.textContent||state.locked)return; const b=[...document.querySelectorAll('.letter')].find(x=>x.dataset.id===s.dataset.source); b.classList.remove('used'); b.disabled=false; s.textContent=''; s.classList.remove('filled'); state.answer=[...document.querySelectorAll('.slot')].map(x=>x.textContent).join(''); });
 }
 function renderMissing(word){
-  const count=word.length>7?3:2, indexes=shuffle([...word.keys()].slice(1,-1)).slice(0,count).sort((a,b)=>a-b);
+  const positions=Array.from({length:word.length},(_,i)=>i);
+  const count=word.length>7?3:2, indexes=shuffle(positions.slice(1,-1)).slice(0,count).sort((a,b)=>a-b);
   $('answer-area').innerHTML=`<div class="missing-word">${word.split('').map((l,i)=>indexes.includes(i)?`<input maxlength="1" inputmode="text" data-position="${i}" aria-label="Missing letter ${indexes.indexOf(i)+1}">`:l).join('')}</div>`;
   const inputs=[...document.querySelectorAll('.missing-word input')]; inputs.forEach((inp,i)=>inp.addEventListener('input',()=>{ inp.value=inp.value.replace(/[^a-z]/gi,'').slice(-1); if(inp.value&&inputs[i+1])inputs[i+1].focus(); state.answer=word.split('').map((l,j)=>indexes.includes(j)?inputs[indexes.indexOf(j)].value.toLowerCase():l).join(''); })); inputs[0].focus();
 }
@@ -87,13 +89,20 @@ function check(){
   if(state.locked)return; const word=WORDS[state.index].word; state.attempts[word]=(state.attempts[word]||0)+1;
   if(state.answer.toLowerCase()===word){
     state.locked=true; state.streak++; const earned=state.hint?1:2; state.stars+=earned;
-    $('feedback').textContent=`Correct! ${STORIES[state.index]} +${earned} star${earned>1?'s':''}`; $('feedback').className='feedback good';
+    $('feedback').textContent=`Correct! ${STORIES[state.index]} +${earned} star${earned>1?'s':''} Moving to the next challenge…`; $('feedback').className='feedback good';
     $('check-btn').classList.add('hidden'); $('next-btn').classList.remove('hidden'); $('hint-btn').disabled=true; save();
+    advanceTimer = setTimeout(next, 2200);
   } else {
     state.streak=0; $('feedback').textContent=state.answer?'Not quite. Look closely at the letter order and try again.':'Choose or build an answer first.'; $('feedback').className='feedback try';
   } updateStats();
 }
-function next(){ state.index++; save(); updateStats(); if(state.index>=WORDS.length){ finish(); return; } renderMap(); loadChallenge(); }
+function next(){
+  if(!state.locked) return;
+  if(advanceTimer){ clearTimeout(advanceTimer); advanceTimer=null; }
+  state.locked=false; state.index++; save(); updateStats();
+  if(state.index>=WORDS.length){ finish(); return; }
+  renderMap(); loadChallenge();
+}
 function finish(){
   $('game').classList.add('hidden'); $('ending').classList.remove('hidden'); localStorage.removeItem('wordQuestSave');
   const total=Object.values(state.attempts).reduce((a,b)=>a+b,0); $('ending-copy').textContent=`You restored all 13 words and earned ${state.stars} stars in ${total} attempts.`;
