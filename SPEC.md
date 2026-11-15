@@ -28,7 +28,7 @@ Advancement requires a clean visit: the first nonblank submitted answer must be 
 
 During Rune Path and Fading Script, incorrect letters are marked red only when Check answer (or Enter) submits the answer. Editing or removing a marked letter clears its mark; newly entered letters remain neutral until another submission.
 
-Focus discourages blind guessing without blocking practice. A submitted nonblank wrong answer costs 2 Focus, requesting a hint costs 1 Focus, and a correct answer restores 1 Focus up to the maximum of 10. Blank checks are free, and zero Focus never prevents another attempt.
+Hearts replace the former Focus counter. New campaigns start with 5 hearts, capped at 10. Completing any challenge (including a corrected practice visit) restores 1 heart exactly once. A submitted nonblank wrong answer costs 1 heart, and using a hint costs 1 heart. Blank checks, definitions, and audio replays are free. Hearts never fall below zero; zero hearts never block answering, but hints require a heart and remain limited to one per visit in the first two trials. The hint button displays its price. Hearts persist across reloads and chapters. Older saves without a heart balance start with 5 hearts while retaining campaign progress. Starting a new campaign resets hearts to 5.
 
 After every successful trial, the game displays its complete story blurb and waits indefinitely. Progression occurs only when the player activates the visible Continue Story control; success must never schedule automatic advancement.
 
@@ -48,7 +48,7 @@ Child-friendly definitions appear immediately beneath the challenge heading in a
 
 ## Persistence
 
-Campaign progress, active words, queued words, mastered words, trial tiers, stars, streak, and attempt counts are saved locally in the browser. No account or network service is required.
+Campaign progress, active words, queued words, mastered words, trial tiers, stars, streak, hearts, and attempt counts are saved locally in the browser. No account or network service is required.
 
 ## Accessibility and device support
 

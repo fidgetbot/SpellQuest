@@ -19,7 +19,7 @@ function createGame(saved=null){
 }
 function baseSave(overrides={}){
   const words=['Machine','Accept','except','Father','Scary','Steal','Ate','Intensity','Level','Stopped'];
-  return {active:words,queue:['Mother'],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:10,stars:0,streak:0,focus:10,attempts:{},...overrides};
+  return {active:words,queue:['Mother'],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:10,stars:0,streak:0,hearts:5,attempts:{},...overrides};
 }
 function type(dom,value){const input=dom.window.document.getElementById('spell-input');input.value=value;input.dispatchEvent(new dom.window.Event('input'));}
 function wordBank(){const dom=new JSDOM('<!doctype html>',{runScripts:'outside-only'});dom.window.eval(fs.readFileSync(path.join(root,'words.js'),'utf8'));return dom.window.WORD_BANK;}
@@ -54,17 +54,17 @@ test('potentially leaky target words remain absent from visible map and challeng
   }
 });
 
-test('wrong checks and hints spend Focus while blank checks are free',()=>{
+test('wrong checks and hints spend hearts while blank checks are free',()=>{
   const {dom,errors}=createGame();
   dom.window.document.getElementById('check-btn').click();
-  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1'))?.focus??10,10);
+  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1'))?.hearts??5,5);
   const firstSlot=dom.window.document.querySelector('.slot');
   [...dom.window.document.querySelectorAll('.letter')].find(button=>button.textContent.toLocaleLowerCase()!=='m').click();
   dom.window.document.getElementById('check-btn').click();
-  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).focus,8);
+  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).hearts,4);
   dom.window.document.getElementById('hint-btn').click();
-  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).focus,7);
-  assert.equal(dom.window.document.getElementById('focus').textContent,'7 / 10');
+  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).hearts,3);
+  assert.equal(dom.window.document.getElementById('hearts').textContent,'3 / 10');
   assert.ok(firstSlot.classList.contains('wrong'));
   firstSlot.click();
   assert.ok(!firstSlot.classList.contains('wrong'));
@@ -189,5 +189,36 @@ test('every word has a local definition and each trial restores it beneath the h
     assert.equal(heading.nextElementSibling.className,'word-definition');
     assert.equal(heading.nextElementSibling.textContent,'A device with parts that work together to do a job.');
     assertTargetHidden(dom,'Machine');dom.window.close();
+  }
+});
+
+test('hearts start at five, survive reload, and legacy saves retain progress',()=>{
+  const fresh=createGame();assert.equal(fresh.dom.window.document.getElementById('hearts').textContent,'5 / 10');fresh.dom.window.close();
+  const legacy=baseSave({progress:{Machine:1},focus:9});delete legacy.hearts;
+  const migrated=createGame(legacy);assert.equal(migrated.dom.window.document.getElementById('hearts').textContent,'5 / 10');
+  fillFading(migrated.dom,'Machine');migrated.dom.window.document.getElementById('check-btn').click();
+  const saved=JSON.parse(migrated.dom.window.localStorage.getItem('spellQuestMasteryV1'));
+  assert.equal(saved.hearts,6);assert.equal(saved.progress.Machine,2);assert.equal(saved.focus,undefined);migrated.dom.window.close();
+  const resumed=createGame(saved);assert.equal(resumed.dom.window.document.getElementById('hearts').textContent,'6 / 10');resumed.dom.window.close();
+});
+
+test('zero hearts allows correction and recovery but blocks hints',()=>{
+  const {dom,errors}=createGame(baseSave({hearts:1,progress:{Machine:1}}));const doc=dom.window.document;
+  doc.getElementById('hint-btn').click();assert.equal(doc.getElementById('hearts').textContent,'0 / 10');assert.ok(doc.getElementById('hint-btn').disabled);
+  fillFading(dom,'Machine',true);doc.getElementById('check-btn').click();assert.equal(doc.getElementById('hearts').textContent,'0 / 10');
+  fillFading(dom,'Machine');doc.getElementById('check-btn').click();assert.equal(doc.getElementById('hearts').textContent,'1 / 10');
+  doc.getElementById('check-btn').click();assert.equal(doc.getElementById('hearts').textContent,'1 / 10');
+  doc.getElementById('next-btn').click();assert.ok(!doc.getElementById('hint-btn').disabled);
+  assert.deepEqual(errors,[]);dom.window.close();
+});
+
+test('completion rewards all trials, caps hearts at ten, and audio is free',()=>{
+  for(const tier of [0,1,2])for(const hearts of [5,10]){
+    const {dom,errors}=createGame(baseSave({hearts,progress:{Machine:tier}}));const doc=dom.window.document;
+    if(tier===0)for(const character of 'Machine')[...doc.querySelectorAll('.letter:not(.used)')].find(button=>button.textContent===character).click();
+    else if(tier===1)fillFading(dom,'Machine');
+    else{doc.getElementById('audio-btn').click();assert.equal(doc.getElementById('hearts').textContent,`${hearts} / 10`);type(dom,'Machine');}
+    doc.getElementById('check-btn').click();assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).hearts,Math.min(hearts+1,10));
+    assert.deepEqual(errors,[]);dom.window.close();
   }
 });

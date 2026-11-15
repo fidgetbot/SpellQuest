@@ -154,3 +154,5 @@ button:disabled { cursor: default; opacity: .5; transform: none; }
   .active-words { grid-template-columns: 1fr; }
   .jewel-vault { grid-template-columns: repeat(6, 1fr); }
 }
+
+.heart-stat i { color: #ff829c; font-style: normal; }

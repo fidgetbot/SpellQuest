@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#18233c">
   <title>Word Quest: The Shattered Lexicon</title>
-  <link rel="stylesheet" href="styles.css?v=20261114.6">
+  <link rel="stylesheet" href="styles.css?v=20261114.7">
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -19,7 +19,7 @@
         <span><b id="mastered-count">0 / 0</b> Mastered</span>
         <span><b id="stars">0</b> Stars</span>
         <span><b id="streak">0</b> Streak</span>
-        <span><b id="focus">10 / 10</b> Focus</span>
+        <span class="heart-stat" aria-live="polite"><i aria-hidden="true">♥</i> <b id="hearts">5 / 10</b> Hearts</span>
       </div>
     </header>
 
@@ -28,6 +28,7 @@
       <p class="eyebrow">A spelling adventure</p>
       <h2>The kingdom's words have been scattered.</h2>
       <p>Train each word through three increasingly difficult trials. Spell it from memory in the final Voice Trial to win its jewel and restore the kingdom.</p>
+      <p>Start with 5 hearts. Complete a challenge to earn one; an incorrect check or a hint costs one. At zero, keep trying to earn hearts back. Definitions and audio replays are free.</p>
       <button id="start-btn" class="primary">Begin the quest</button>
       <button id="continue-btn" class="secondary hidden">Continue saved quest</button>
     </section>
@@ -65,7 +66,7 @@
           <div id="answer-area"></div>
           <div id="feedback" class="feedback" role="status"></div>
           <div class="actions">
-            <button id="hint-btn" class="secondary">Use a hint</button>
+            <button id="hint-btn" class="secondary">Use a hint (1 heart)</button>
             <button id="audio-btn" class="secondary hidden">Hear word</button>
             <button id="check-btn" class="primary">Check answer</button>
             <button id="next-btn" class="primary hidden">Continue story</button>
@@ -83,8 +84,8 @@
       <button id="replay-btn" class="primary">Begin next chapter</button>
     </section>
   </main>
-  <script src="words.js?v=20261114.6"></script>
-  <script src="definitions.js?v=20261114.6"></script>
-  <script src="game.js?v=20261114.6"></script>
+  <script src="words.js?v=20261114.7"></script>
+  <script src="definitions.js?v=20261114.7"></script>
+  <script src="game.js?v=20261114.7"></script>
 </body>
 </html>
