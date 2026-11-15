@@ -72,3 +72,11 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Gold star and ruby heart counters lead the HUD. Mastery and streak remain secondary statistics.
 - Phone layout places a compact map above one active trial. Explore map expands the map and victory vault; short phone screens collapse map artwork by default. Desktop uses two columns.
 - Voice audio sits above the answer and in-game keyboard. Visible focus styles and at least 44px-high keyboard keys support interaction; reduced-motion settings disable decorative animation.
+
+## Player-led adventure
+- The protagonist is the player, traveling with Pip the fox to defeat the Ink Regent and restore the kingdom's stolen voices.
+- Every completed challenge, including a corrected practice visit, reveals exactly one new second-person story sentence. Wrong checks, hints, repeated clicks after completion, and audio do not advance the story.
+- Story order is independent of word/trial order: 24 authored beats form a connected expedition (rescue, exploration, battles, a firebird and beacon), with changing regions and foes on subsequent expeditions. Chapter interludes describe breaches in the Regent's defenses; only mastery of the full bank defeats him.
+- Story victories persist across reloads and spelling chapters. Legacy campaigns start the new narrative at its opening without losing spelling progress; new campaigns reset narrative progress.
+- The latest 60 story sentences are kept in a collapsible journal shown only on the victory screen, so previous prose cannot expose a target during an active trial.
+- Success remains on screen indefinitely until Continue story. Story completion does not bypass mastery rules, change star/heart rewards, or trigger automatic progression.

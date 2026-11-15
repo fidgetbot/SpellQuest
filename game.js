@@ -11,7 +11,7 @@ const SPANISH=new Set(['empresa','abrigo','nevera','tal vez','volver']);
 const PLACE_FIRST=['Whispering','Silver','Crooked','Riddle','Thorn','Mirror','Moonlit','Shadow','Twin','Golden','Crystal','Emerald'];
 const PLACE_LAST=['Gate','Meadow','Bridge','Woods','Keep','Caves','Stage','Fen','Towers','Library','Hall','Sanctum'];
 const MAP_POSITIONS=[[8,78],[24,65],[43,76],[62,64],[82,73],[88,48],[69,39],[49,50],[29,35],[47,17]];
-const state={active:[],queue:[],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:ACTIVE_LIMIT,stars:0,streak:0,hearts:STARTING_HEARTS,attempts:{},answer:'',locked:false,lastMastered:false,visitFailed:false,hintUsed:false};
+const state={active:[],queue:[],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:ACTIVE_LIMIT,stars:0,streak:0,hearts:STARTING_HEARTS,storyVictories:0,storyJournal:[],attempts:{},answer:'',locked:false,lastMastered:false,visitFailed:false,hintUsed:false};
 const $=id=>document.getElementById(id);
 const shuffle=array=>[...array].sort(()=>Math.random()-.5);
 const isLetter=character=>/^[A-Za-zÀ-ÿ]$/.test(character);
@@ -20,7 +20,7 @@ const placeFor=word=>{const hash=hashWord(word),target=word.toLocaleLowerCase();
 const jewelHue=word=>hashWord(word)%360;
 
 function freshState(){
-  return {active:WORD_BANK.slice(0,ACTIVE_LIMIT),queue:WORD_BANK.slice(ACTIVE_LIMIT),mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:Math.min(ACTIVE_LIMIT,WORD_BANK.length),stars:0,streak:0,hearts:STARTING_HEARTS,attempts:{}};
+  return {active:WORD_BANK.slice(0,ACTIVE_LIMIT),queue:WORD_BANK.slice(ACTIVE_LIMIT),mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:Math.min(ACTIVE_LIMIT,WORD_BANK.length),stars:0,streak:0,hearts:STARTING_HEARTS,storyVictories:0,storyJournal:[],attempts:{}};
 }
 function reconcileSave(saved){
   const known=new Set(WORD_BANK), seen=new Set();
@@ -30,13 +30,13 @@ function reconcileSave(saved){
   while(active.length<ACTIVE_LIMIT&&queue.length)active.push(queue.shift());
   const chapterStart=Number.isInteger(saved.chapterStart)?saved.chapterStart:Math.floor(mastered.length/ACTIVE_LIMIT)*ACTIVE_LIMIT;
   const chapterTarget=Number.isInteger(saved.chapterTarget)?saved.chapterTarget:Math.min(ACTIVE_LIMIT,WORD_BANK.length-chapterStart);
-  return {...freshState(),...saved,hearts:Number.isInteger(saved.hearts)?Math.max(0,Math.min(MAX_HEARTS,saved.hearts)):STARTING_HEARTS,mastered,active,queue,cursor:active.length?Math.min(saved.cursor||0,active.length-1):0,chapterStart,chapterTarget,progress:saved.progress||{},attempts:saved.attempts||{}};
+  return {...freshState(),...saved,hearts:Number.isInteger(saved.hearts)?Math.max(0,Math.min(MAX_HEARTS,saved.hearts)):STARTING_HEARTS,storyVictories:Number.isSafeInteger(saved.storyVictories)&&saved.storyVictories>=0?saved.storyVictories:0,storyJournal:Array.isArray(saved.storyJournal)?saved.storyJournal.filter(entry=>entry&&typeof entry.heading==='string'&&typeof entry.text==='string').slice(-60):[],mastered,active,queue,cursor:active.length?Math.min(saved.cursor||0,active.length-1):0,chapterStart,chapterTarget,progress:saved.progress||{},attempts:saved.attempts||{}};
 }
 function readSave(){
   try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return saved&&Array.isArray(saved.active)?reconcileSave(saved):null;}catch{return null;}
 }
 let loadedSave=readSave();
-function save(){localStorage.setItem(SAVE_KEY,JSON.stringify({active:state.active,queue:state.queue,mastered:state.mastered,progress:state.progress,cursor:state.cursor,chapterStart:state.chapterStart,chapterTarget:state.chapterTarget,stars:state.stars,streak:state.streak,hearts:state.hearts,attempts:state.attempts}));}
+function save(){localStorage.setItem(SAVE_KEY,JSON.stringify({active:state.active,queue:state.queue,mastered:state.mastered,progress:state.progress,cursor:state.cursor,chapterStart:state.chapterStart,chapterTarget:state.chapterTarget,stars:state.stars,streak:state.streak,hearts:state.hearts,storyVictories:state.storyVictories,storyJournal:state.storyJournal,attempts:state.attempts}));}
 function currentWord(){return state.active[state.cursor];}
 function currentTier(){return state.progress[currentWord()]||0;}
 function normalize(value,caseSensitive=false){const cleaned=value.replace(/[’‘]/g,"'").replace(/\s+/g,' ').trim();return caseSensitive?cleaned:cleaned.toLocaleLowerCase();}
@@ -129,11 +129,22 @@ function check(){
   markSubmittedLetters(word);
   if(!answerMatches(state.answer,word)){state.streak=0;if(state.answer)state.visitFailed=true;const spent=state.answer?spendHeart():0;const retry=tier===2?'Not yet. Listen once more and try again.':'Not yet. Study the red letters and try once more.';$('feedback').textContent=state.answer?retry+costText(spent):'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
   state.locked=true;state.hearts=Math.min(MAX_HEARTS,state.hearts+1);
-  if(state.visitFailed){state.streak=0;state.lastMastered=false;$('feedback').textContent=`Practice complete. The magic around “${word}” is steadier, but it must return later for a clean first-try victory.`;}
-  else if(tier<2){state.streak++;state.stars+=TRIALS[tier].reward;state.progress[word]=tier+1;$('feedback').textContent=tier===0?`The runes of ${placeFor(word)} begin to glow. “${word}” is ready for a harder trial.`:`A hidden path opens at ${placeFor(word)}. One final Voice Trial remains for “${word}”.`;state.lastMastered=false;}
+  if(state.visitFailed){state.streak=0;state.lastMastered=false;$('feedback').textContent=`Practice complete: “${word}” must return later for a clean first-try victory.`;}
+  else if(tier<2){state.streak++;state.stars+=TRIALS[tier].reward;state.progress[word]=tier+1;$('feedback').textContent=tier===0?`“${word}” is ready for a harder trial.`:`One final Voice Trial remains for “${word}”.`;state.lastMastered=false;}
   else{state.streak++;state.stars+=TRIALS[tier].reward;state.mastered.push(word);state.active.splice(state.cursor,1);delete state.progress[word];if(state.queue.length)state.active.push(state.queue.shift());state.lastMastered=true;$('feedback').innerHTML=`<div class="victory-reveal">${jewelMarkup(word)}<div><strong>Victory at ${placeFor(word)}!</strong><small>“${escapeHtml(word)}” mastered · jewel earned</small></div></div>`;}
+  const story=storyVictory(state.storyVictories++);
+  state.storyJournal.push(story);state.storyJournal=state.storyJournal.slice(-60);
+  const passage=document.createElement('section');passage.className='story-passage';passage.tabIndex=-1;passage.setAttribute('aria-label','Your adventure');
+  const heading=document.createElement('h3');heading.textContent=story.heading;
+  const sentence=document.createElement('p');sentence.textContent=story.text;
+  passage.append(heading,sentence);$('feedback').prepend(passage);
+  const journal=document.createElement('details');journal.className='story-journal';
+  const summary=document.createElement('summary');summary.textContent='Adventure journal';
+  const entries=document.createElement('ol');
+  for(const entry of state.storyJournal){const item=document.createElement('li');item.textContent=entry.text;entries.append(item);}
+  journal.append(summary,entries);$('feedback').append(journal);
   $('feedback').append(document.createTextNode(state.hearts===MAX_HEARTS?' Hearts full!':' +1 heart.'));
-  $('feedback').className='feedback good';$('check-btn').classList.add('hidden');$('next-btn').classList.remove('hidden');$('hint-btn').disabled=true;$('audio-btn').disabled=true;save();renderCampaign();
+  $('feedback').className='feedback good';$('check-btn').classList.add('hidden');$('next-btn').classList.remove('hidden');$('hint-btn').disabled=true;$('audio-btn').disabled=true;save();renderCampaign();passage.focus({preventScroll:true});passage.scrollIntoView?.({block:'center',behavior:'instant'});
 }
 function nextChallenge(){
   if(!state.locked)return;state.locked=false;
@@ -144,8 +155,8 @@ function nextChallenge(){
 function finishChapter(){
   window.speechSynthesis?.cancel?.();$('game').classList.add('hidden');$('ending').classList.remove('hidden');
   const chapterWords=state.mastered.slice(state.chapterStart,state.chapterStart+state.chapterTarget);const complete=state.mastered.length===WORD_BANK.length;
-  $('ending-title').textContent=complete?'The Lexicon is complete!':'Chapter complete!';
-  $('ending-copy').textContent=complete?`Every word in the bank has been spelled from memory. The Crown of Lexicon shines with all ${state.mastered.length} jewels.`:`All ${state.chapterTarget} chapter words were spelled from memory. Their jewels have restored another realm of Lexicon.`;
+  $('ending-title').textContent=complete?'The Ink Regent falls!':'A breach in the darkness!';
+  $('ending-copy').textContent=complete?`You set the last of your ${state.mastered.length} jewels into the Crown of Lexicon and turn the Ink Regent’s final spell back upon him; his shadow dissolves into harmless rain, and Pip races beside you as the kingdom speaks its own name again.`:`You raise the ${state.chapterTarget} jewels you earned in this chapter, tearing a bright opening in the Ink Regent’s storm; beyond it, distant towers answer with a signal, and you and Pip set out to free the people still waiting there.`;
   $('word-report').innerHTML=chapterWords.map(word=>jewelMarkup(word,true)).join('');$('replay-btn').textContent=complete?'Start a new campaign':'Begin next chapter';save();
 }
 function continueCampaign(){

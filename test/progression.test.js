@@ -13,6 +13,7 @@ function createGame(saved=null){
   if(saved)dom.window.localStorage.setItem('spellQuestMasteryV1',JSON.stringify(saved));
   dom.window.eval(fs.readFileSync(path.join(root,'words.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'definitions.js'),'utf8'));
+  dom.window.eval(fs.readFileSync(path.join(root,'story.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'game.js'),'utf8'));
   dom.window.document.getElementById(saved?'continue-btn':'start-btn').click();
   return {dom,errors,spoken};
@@ -268,4 +269,55 @@ test('map toggle is reversible and trial themes retain the same audio control',(
     toggle.click();assert.equal(toggle.getAttribute('aria-expanded'),'false');
     assert.deepEqual(errors,[]);dom.window.close();
   }
+});
+
+test('story advances once per completion, survives reload, and stays hidden during answers',()=>{
+  const first=createGame(baseSave({progress:{Machine:2}})),doc=first.dom.window.document;
+  type(first.dom,'wrong');doc.getElementById('check-btn').click();
+  assert.equal(JSON.parse(first.dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,0);
+  assert.equal(doc.querySelector('.story-passage'),null);
+  type(first.dom,'Machine');doc.getElementById('check-btn').click();
+  assert.match(doc.querySelector('.story-passage p').textContent,/You reach Briarwood Crossing/);
+  const sentence=doc.querySelector('.story-passage p').textContent;
+  doc.getElementById('check-btn').click();
+  let saved=JSON.parse(first.dom.window.localStorage.getItem('spellQuestMasteryV1'));
+  assert.equal(saved.storyVictories,1);assert.equal(saved.storyJournal.length,1);
+  assert.deepEqual(saved.mastered,[]); // A corrected visit advances narrative, not mastery.
+  doc.getElementById('next-btn').click();
+  assert.equal(doc.querySelector('.story-passage'),null);assert.equal(doc.querySelector('.story-journal'),null);
+  saved=JSON.parse(first.dom.window.localStorage.getItem('spellQuestMasteryV1'));saved.cursor=0;first.dom.window.close();
+  const resumed=createGame(saved);type(resumed.dom,'Machine');resumed.dom.window.document.getElementById('check-btn').click();
+  const next=resumed.dom.window.document.querySelector('.story-passage p').textContent;
+  assert.notEqual(next,sentence);assert.match(next,/freeing a scout/);
+  assert.equal(JSON.parse(resumed.dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,2);
+  assert.deepEqual(resumed.errors,[]);resumed.dom.window.close();
+});
+
+test('adventure text covers the full clean campaign without identical sentences or missing placeholders',()=>{
+  const {dom}=createGame(),seen=new Set();
+  for(let index=0;index<wordBank().length*3;index++){
+    const entry=dom.window.storyVictory(index);
+    assert.ok(entry.text.includes('you ')||entry.text.startsWith('You '));
+    assert.ok(!/[{}]/.test(entry.text));assert.ok(!seen.has(entry.text),'Repeated sentence '+index);
+    seen.add(entry.text);
+  }
+  dom.window.close();
+});
+
+test('new campaign clears story and completed chapters keep it',()=>{
+  const saved=baseSave({storyVictories:24,storyJournal:[{heading:'Earlier',text:'A previous adventure.'}]});
+  const {dom}=createGame(saved);
+  dom.window.document.getElementById('start-btn').click();
+  for(const c of 'Machine')[...dom.window.document.querySelectorAll('.letter:not(.used)')].find(b=>b.textContent===c).click();
+  dom.window.document.getElementById('check-btn').click();
+  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,1);
+  dom.window.close();
+  const all=wordBank(),chapter=all.slice(0,10),last=chapter.at(-1);
+  const final=createGame(baseSave({active:[last],queue:all.slice(10),mastered:chapter.slice(0,-1),progress:{[last]:2},storyVictories:29,storyJournal:[]}));
+  type(final.dom,last);final.dom.window.document.getElementById('check-btn').click();final.dom.window.document.getElementById('next-btn').click();
+  assert.match(final.dom.window.document.getElementById('ending-copy').textContent,/Ink Regent/);
+  assert.ok(!final.dom.window.document.getElementById('ending-title').textContent.includes('falls'));
+  final.dom.window.document.getElementById('replay-btn').click();
+  assert.equal(JSON.parse(final.dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,30);
+  final.dom.window.close();
 });
