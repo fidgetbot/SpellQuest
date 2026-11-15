@@ -27,3 +27,7 @@ Each word restores one named location. The quest map and story response must upd
 ## Out of scope for this release
 
 Audio, handwriting recognition, accounts, network services, timers, and punitive scoring.
+
+## Deployment
+
+The static game is published from the root of the `main` branch through GitHub Pages at `https://fidgetbot.github.io/SpellQuest/`.
