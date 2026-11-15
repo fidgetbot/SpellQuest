@@ -24,6 +24,10 @@ Each word advances through exactly three trials:
 
 A word is mastered only after a correct Voice Trial. Incorrect answers never advance the word. Hints are available only in the first two trials. Replaying the spoken prompt is allowed and does not reduce mastery.
 
+During Rune Path and Fading Script, each incorrect letter is marked red immediately at its position and the mark clears when that letter is removed or corrected.
+
+After every successful trial, the game displays its complete story blurb and waits indefinitely. Progression occurs only when the player activates the visible Continue Story control; success must never schedule automatic advancement.
+
 Homophones, contractions, and capitalization lessons use an audible context sentence in the Voice Trial. Other entries are spoken twice. Spanish entries use a Spanish speech locale when supported.
 
 ## Campaign and victories

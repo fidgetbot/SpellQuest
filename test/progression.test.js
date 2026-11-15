@@ -40,11 +40,22 @@ test('only ten words are active and new bank entries are queued',()=>{
 
 test('a correct Rune Path advances the roster and fully renders the next challenge',()=>{
   const {dom,errors}=createGame();
+  const firstSlot=dom.window.document.querySelector('.slot');
+  const wrongButton=[...dom.window.document.querySelectorAll('.letter')].find(candidate=>candidate.textContent.toLocaleLowerCase()!=='m');
+  wrongButton.click();
+  assert.ok(firstSlot.classList.contains('wrong'));
+  firstSlot.click();
+  assert.ok(!firstSlot.classList.contains('wrong'));
   for(const character of 'Machine'){
     const button=[...dom.window.document.querySelectorAll('.letter:not(.used)')].find(candidate=>candidate.textContent===character);
     assert.ok(button,`available rune ${character}`);button.click();
   }
-  dom.window.document.getElementById('check-btn').click();dom.window.document.getElementById('next-btn').click();
+  let scheduledAdvances=0;dom.window.setTimeout=()=>{scheduledAdvances++;};
+  dom.window.document.getElementById('check-btn').click();
+  assert.equal(scheduledAdvances,0);
+  assert.equal(dom.window.document.querySelector('.active-word.current .active-name').textContent,'Machine');
+  assert.ok(!dom.window.document.getElementById('next-btn').classList.contains('hidden'));
+  dom.window.document.getElementById('next-btn').click();
   const saved=JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1'));
   assert.equal(saved.progress.Machine,1);
   assert.equal(dom.window.document.querySelectorAll('.active-word').length,10);
@@ -57,6 +68,11 @@ test('a word returning for its second trial renders the harder Fading Script',()
   const {dom,errors}=createGame(baseSave({progress:{Machine:1}}));
   assert.equal(dom.window.document.getElementById('challenge-type').textContent,'Fading Script');
   assert.ok(dom.window.document.querySelectorAll('.missing-word input').length>=2);
+  const input=dom.window.document.querySelector('.missing-word input'),expected='Machine'[Number(input.dataset.position)];
+  input.value=expected.toLocaleLowerCase()==='z'?'x':'z';input.dispatchEvent(new dom.window.Event('input'));
+  assert.ok(input.classList.contains('wrong'));
+  input.value=expected;input.dispatchEvent(new dom.window.Event('input'));
+  assert.ok(!input.classList.contains('wrong'));
   assert.deepEqual(errors,[]);dom.window.close();
 });
 

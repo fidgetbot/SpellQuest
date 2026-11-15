@@ -80,9 +80,10 @@ button:disabled { cursor: default; opacity: .5; transform: none; }
 .letter.used { opacity: .25; transform: scale(.9); }
 .slot { border: 2px dashed #52617d; background: #111a2d; }
 .slot.filled { border-style: solid; color: var(--gold); }
+.slot.wrong, .missing-word input.wrong { color: #fff; border-color: var(--rose); background: #5f1f32; box-shadow: 0 0 0 3px #fb718522, 0 4px 0 #35101b; }
 .missing-word { text-align: center; font: bold clamp(2rem, 7vw, 3.4rem) Georgia; letter-spacing: .15em; margin: 20px 0; }
 .missing-word span { display: inline-grid; min-width: .7em; place-items: center; }
-.missing-word input { width: 48px; height: 52px; border: 0; border-bottom: 4px solid var(--gold); background: #111a2d; color: var(--gold); text-align: center; text-transform: lowercase; font: inherit; font-size: 2rem; border-radius: 6px; }
+.missing-word input { width: 48px; height: 52px; border: 0; border-bottom: 4px solid var(--gold); background: #111a2d; color: var(--gold); text-align: center; font: inherit; font-size: 2rem; border-radius: 6px; }
 .choices { display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 12px; max-width: 560px; margin: 0 auto; }
 .choice { padding: 18px; border: 2px solid #415270; background: #17233d; color: var(--ink); border-radius: 13px; font-size: 1.15rem; font-weight: 900; }
 .choice.selected { border-color: var(--gold); background: #3b321d; color: var(--gold); }

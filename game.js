@@ -20,7 +20,6 @@ const SPANISH=new Set(['empresa','abrigo','nevera','tal vez','volver']);
 const PLACE_FIRST=['Whispering','Silver','Crooked','Riddle','Thorn','Mirror','Moonlit','Shadow','Twin','Golden','Crystal','Emerald'];
 const PLACE_LAST=['Gate','Meadow','Bridge','Woods','Keep','Caves','Stage','Fen','Towers','Library','Hall','Sanctum'];
 const state={active:[],queue:[],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:ACTIVE_LIMIT,stars:0,streak:0,attempts:{},answer:'',locked:false,lastMastered:false};
-let advanceTimer=null;
 const $=id=>document.getElementById(id);
 const shuffle=array=>[...array].sort(()=>Math.random()-.5);
 const isLetter=character=>/^[A-Za-zÀ-ÿ]$/.test(character);
@@ -80,13 +79,13 @@ function assembledAnswer(word){const slots=new Map([...document.querySelectorAll
 function renderRunePath(word){
   const letterPositions=[...word].map((character,position)=>({character,position})).filter(item=>isLetter(item.character));
   $('answer-area').innerHTML=`<div class="slots">${wordSlots(word,new Set(letterPositions.map(item=>item.position)))}</div><div class="letter-bank" id="bank"></div>`;
-  shuffle(letterPositions).forEach(rune=>{const button=document.createElement('button');button.className='letter';button.textContent=rune.character;button.dataset.id=rune.position;button.onclick=()=>{if(state.locked)return;const slot=[...document.querySelectorAll('.slot')].find(candidate=>!candidate.textContent);if(!slot)return;slot.textContent=rune.character;slot.classList.add('filled');slot.dataset.source=rune.position;button.classList.add('used');button.disabled=true;state.answer=assembledAnswer(word);};$('bank').appendChild(button);});
-  document.querySelectorAll('.slot').forEach(slot=>slot.onclick=()=>{if(!slot.textContent||state.locked)return;const button=[...document.querySelectorAll('.letter')].find(candidate=>candidate.dataset.id===slot.dataset.source);button.classList.remove('used');button.disabled=false;slot.textContent='';slot.classList.remove('filled');state.answer=assembledAnswer(word);});
+  shuffle(letterPositions).forEach(rune=>{const button=document.createElement('button');button.className='letter';button.textContent=rune.character;button.dataset.id=rune.position;button.onclick=()=>{if(state.locked)return;const slot=[...document.querySelectorAll('.slot')].find(candidate=>!candidate.textContent);if(!slot)return;slot.textContent=rune.character;slot.classList.add('filled');slot.classList.toggle('wrong',rune.character.toLocaleLowerCase()!==word[Number(slot.dataset.position)].toLocaleLowerCase());slot.dataset.source=rune.position;button.classList.add('used');button.disabled=true;state.answer=assembledAnswer(word);};$('bank').appendChild(button);});
+  document.querySelectorAll('.slot').forEach(slot=>slot.onclick=()=>{if(!slot.textContent||state.locked)return;const button=[...document.querySelectorAll('.letter')].find(candidate=>candidate.dataset.id===slot.dataset.source);button.classList.remove('used');button.disabled=false;slot.textContent='';slot.classList.remove('filled','wrong');state.answer=assembledAnswer(word);});
 }
 function renderFadingScript(word){
   const eligible=[...word].map((character,position)=>({character,position})).filter(item=>isLetter(item.character));const count=Math.max(2,Math.ceil(eligible.length*.55));const missing=shuffle(eligible).slice(0,count).map(item=>item.position).sort((a,b)=>a-b);
   $('answer-area').innerHTML=`<div class="missing-word">${[...word].map((character,position)=>missing.includes(position)?`<input maxlength="1" autocomplete="off" data-position="${position}" aria-label="Missing letter ${missing.indexOf(position)+1}">`:`<span>${character===' '?'&nbsp;':escapeHtml(character)}</span>`).join('')}</div>`;
-  const inputs=[...document.querySelectorAll('.missing-word input')];inputs.forEach((input,index)=>input.addEventListener('input',()=>{input.value=input.value.replace(/[^A-Za-zÀ-ÿ]/g,'').slice(-1);if(input.value&&inputs[index+1])inputs[index+1].focus();const values=new Map(inputs.map(field=>[Number(field.dataset.position),field.value]));state.answer=[...word].map((character,position)=>values.has(position)?values.get(position):character).join('');}));inputs[0]?.focus();
+  const inputs=[...document.querySelectorAll('.missing-word input')];inputs.forEach((input,index)=>input.addEventListener('input',()=>{input.value=input.value.replace(/[^A-Za-zÀ-ÿ]/g,'').slice(-1);input.classList.toggle('wrong',Boolean(input.value)&&input.value.toLocaleLowerCase()!==word[Number(input.dataset.position)].toLocaleLowerCase());if(input.value&&inputs[index+1])inputs[index+1].focus();const values=new Map(inputs.map(field=>[Number(field.dataset.position),field.value]));state.answer=[...word].map((character,position)=>values.has(position)?values.get(position):character).join('');}));inputs[0]?.focus();
 }
 function renderVoiceTrial(){$('answer-area').innerHTML='<div class="voice-entry"><div class="sound-rings" aria-hidden="true"><i></i><i></i><i></i></div><label for="spell-input">Type exactly what you hear</label><input id="spell-input" class="spell-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>';const input=$('spell-input');input.addEventListener('input',()=>{input.value=input.value.replace(/[^A-Za-zÀ-ÿ\-'’ ]/g,'').replace(/\s{2,}/g,' ');state.answer=input.value;});input.focus();}
 function spokenPrompt(word){return CONTEXTS[word]?`Listen to the word in this sentence. ${CONTEXTS[word]} Spell the word: ${word}.`: `Spell the word: ${word}. ${word}.`;}
@@ -104,12 +103,12 @@ function check(){
   if(state.locked)return;const word=currentWord(),tier=currentTier();state.attempts[word]=(state.attempts[word]||0)+1;
   if(!answerMatches(state.answer,word)){state.streak=0;$('feedback').textContent=state.answer?'Not yet. Study the spelling and try once more.':'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
   state.locked=true;state.streak++;state.stars+=TRIALS[tier].reward;
-  if(tier<2){state.progress[word]=tier+1;$('feedback').textContent=`Trial passed. “${word}” is ready for a harder challenge.`;state.lastMastered=false;}
+  if(tier<2){state.progress[word]=tier+1;$('feedback').textContent=tier===0?`The runes of ${placeFor(word)} begin to glow. “${word}” is ready for a harder trial.`:`A hidden path opens at ${placeFor(word)}. One final Voice Trial remains for “${word}”.`;state.lastMastered=false;}
   else{state.mastered.push(word);state.active.splice(state.cursor,1);delete state.progress[word];if(state.queue.length)state.active.push(state.queue.shift());state.lastMastered=true;$('feedback').innerHTML=`<div class="victory-reveal">${jewelMarkup(word)}<div><strong>Victory at ${placeFor(word)}!</strong><small>“${escapeHtml(word)}” mastered · jewel earned</small></div></div>`;}
-  $('feedback').className='feedback good';$('check-btn').classList.add('hidden');$('next-btn').classList.remove('hidden');$('hint-btn').disabled=true;$('audio-btn').disabled=true;save();renderCampaign();advanceTimer=setTimeout(nextChallenge,3000);
+  $('feedback').className='feedback good';$('check-btn').classList.add('hidden');$('next-btn').classList.remove('hidden');$('hint-btn').disabled=true;$('audio-btn').disabled=true;save();renderCampaign();
 }
 function nextChallenge(){
-  if(!state.locked)return;if(advanceTimer){clearTimeout(advanceTimer);advanceTimer=null;}state.locked=false;
+  if(!state.locked)return;state.locked=false;
   if(state.mastered.length-state.chapterStart>=state.chapterTarget){finishChapter();return;}
   if(state.active.length){state.cursor=state.lastMastered?state.cursor%state.active.length:(state.cursor+1)%state.active.length;}
   save();renderCampaign();loadChallenge();
