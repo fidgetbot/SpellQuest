@@ -18,7 +18,7 @@ function createGame(saved=null){
 }
 function baseSave(overrides={}){
   const words=['Machine','Accept','except','Father','Scary','Steal','Ate','Intensity','Level','Stopped'];
-  return {active:words,queue:['Mother'],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:10,stars:0,streak:0,attempts:{},...overrides};
+  return {active:words,queue:['Mother'],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:10,stars:0,streak:0,focus:10,attempts:{},...overrides};
 }
 function type(dom,value){const input=dom.window.document.getElementById('spell-input');input.value=value;input.dispatchEvent(new dom.window.Event('input'));}
 function wordBank(){const dom=new JSDOM('<!doctype html>',{runScripts:'outside-only'});dom.window.eval(fs.readFileSync(path.join(root,'words.js'),'utf8'));return dom.window.WORD_BANK;}
@@ -35,6 +35,21 @@ test('only ten words are active and new bank entries are queued',()=>{
   assert.equal(dom.window.document.querySelectorAll('.active-word').length,10);
   assert.match(dom.window.document.getElementById('queue-count').textContent,/waiting/);
   assert.equal(dom.window.document.querySelector('.active-name').textContent,'Machine');
+  assert.deepEqual(errors,[]);dom.window.close();
+});
+
+test('wrong checks and hints spend Focus while blank checks are free',()=>{
+  const {dom,errors}=createGame();
+  dom.window.document.getElementById('check-btn').click();
+  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1'))?.focus??10,10);
+  const firstSlot=dom.window.document.querySelector('.slot');
+  [...dom.window.document.querySelectorAll('.letter')].find(button=>button.textContent.toLocaleLowerCase()!=='m').click();
+  dom.window.document.getElementById('check-btn').click();
+  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).focus,8);
+  dom.window.document.getElementById('hint-btn').click();
+  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).focus,7);
+  assert.equal(dom.window.document.getElementById('focus').textContent,'7 / 10');
+  assert.ok(firstSlot.classList.contains('wrong'));
   assert.deepEqual(errors,[]);dom.window.close();
 });
 

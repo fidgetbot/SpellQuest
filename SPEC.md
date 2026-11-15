@@ -26,6 +26,8 @@ A word is mastered only after a correct Voice Trial. Incorrect answers never adv
 
 During Rune Path and Fading Script, each incorrect letter is marked red immediately at its position and the mark clears when that letter is removed or corrected.
 
+Focus discourages blind guessing without blocking practice. A submitted nonblank wrong answer costs 2 Focus, requesting a hint costs 1 Focus, and a correct answer restores 1 Focus up to the maximum of 10. Blank checks are free, and zero Focus never prevents another attempt.
+
 After every successful trial, the game displays its complete story blurb and waits indefinitely. Progression occurs only when the player activates the visible Continue Story control; success must never schedule automatic advancement.
 
 Homophones, contractions, and capitalization lessons use an audible context sentence in the Voice Trial. Other entries are spoken twice. Spanish entries use a Spanish speech locale when supported.

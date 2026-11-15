@@ -19,7 +19,7 @@ const CONTEXTS={
 const SPANISH=new Set(['empresa','abrigo','nevera','tal vez','volver']);
 const PLACE_FIRST=['Whispering','Silver','Crooked','Riddle','Thorn','Mirror','Moonlit','Shadow','Twin','Golden','Crystal','Emerald'];
 const PLACE_LAST=['Gate','Meadow','Bridge','Woods','Keep','Caves','Stage','Fen','Towers','Library','Hall','Sanctum'];
-const state={active:[],queue:[],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:ACTIVE_LIMIT,stars:0,streak:0,attempts:{},answer:'',locked:false,lastMastered:false};
+const state={active:[],queue:[],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:ACTIVE_LIMIT,stars:0,streak:0,focus:10,attempts:{},answer:'',locked:false,lastMastered:false};
 const $=id=>document.getElementById(id);
 const shuffle=array=>[...array].sort(()=>Math.random()-.5);
 const isLetter=character=>/^[A-Za-zÀ-ÿ]$/.test(character);
@@ -28,7 +28,7 @@ const placeFor=word=>{const hash=hashWord(word);return `${PLACE_FIRST[hash%PLACE
 const jewelHue=word=>hashWord(word)%360;
 
 function freshState(){
-  return {active:WORD_BANK.slice(0,ACTIVE_LIMIT),queue:WORD_BANK.slice(ACTIVE_LIMIT),mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:Math.min(ACTIVE_LIMIT,WORD_BANK.length),stars:0,streak:0,attempts:{}};
+  return {active:WORD_BANK.slice(0,ACTIVE_LIMIT),queue:WORD_BANK.slice(ACTIVE_LIMIT),mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:Math.min(ACTIVE_LIMIT,WORD_BANK.length),stars:0,streak:0,focus:10,attempts:{}};
 }
 function reconcileSave(saved){
   const known=new Set(WORD_BANK), seen=new Set();
@@ -44,7 +44,7 @@ function readSave(){
   try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return saved&&Array.isArray(saved.active)?reconcileSave(saved):null;}catch{return null;}
 }
 let loadedSave=readSave();
-function save(){localStorage.setItem(SAVE_KEY,JSON.stringify({active:state.active,queue:state.queue,mastered:state.mastered,progress:state.progress,cursor:state.cursor,chapterStart:state.chapterStart,chapterTarget:state.chapterTarget,stars:state.stars,streak:state.streak,attempts:state.attempts}));}
+function save(){localStorage.setItem(SAVE_KEY,JSON.stringify({active:state.active,queue:state.queue,mastered:state.mastered,progress:state.progress,cursor:state.cursor,chapterStart:state.chapterStart,chapterTarget:state.chapterTarget,stars:state.stars,streak:state.streak,focus:state.focus,attempts:state.attempts}));}
 function currentWord(){return state.active[state.cursor];}
 function currentTier(){return state.progress[currentWord()]||0;}
 function normalize(value,caseSensitive=false){const cleaned=value.replace(/[’‘]/g,"'").replace(/\s+/g,' ').trim();return caseSensitive?cleaned:cleaned.toLocaleLowerCase();}
@@ -56,7 +56,7 @@ function begin(resume=false){
   renderCampaign();loadChallenge();
 }
 function renderCampaign(){
-  $('mastered-count').textContent=`${state.mastered.length} / ${WORD_BANK.length}`;$('stars').textContent=state.stars;$('streak').textContent=state.streak;
+  $('mastered-count').textContent=`${state.mastered.length} / ${WORD_BANK.length}`;$('stars').textContent=state.stars;$('streak').textContent=state.streak;$('focus').textContent=`${state.focus} / 10`;
   $('active-count').textContent=`${state.active.length} active`;$('queue-count').textContent=state.queue.length?`${state.queue.length} waiting`:'No words waiting';
   $('active-words').innerHTML=state.active.map((word,index)=>{const tier=state.progress[word]||0;return `<div class="active-word ${index===state.cursor?'current':''}"><span class="active-name">${escapeHtml(word)}</span><span class="trial-dots" aria-label="${tier} of 3 trials passed">${[0,1,2].map(n=>`<i class="${n<tier?'passed':''}"></i>`).join('')}</span></div>`;}).join('');
   $('jewel-vault').innerHTML=state.mastered.length?state.mastered.slice(-12).map(word=>jewelMarkup(word,true)).join(''):'<p class="empty-vault">Victory jewels will appear here.</p>';
@@ -93,16 +93,18 @@ function speakWord(){
   if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){$('feedback').textContent='Audio is unavailable in this browser. Ask an adult to read the word aloud.';$('feedback').className='feedback try';return;}
   window.speechSynthesis.cancel();const utterance=new window.SpeechSynthesisUtterance(spokenPrompt(currentWord()));utterance.rate=.78;utterance.pitch=1;utterance.lang=SPANISH.has(currentWord())?'es-US':'en-US';window.speechSynthesis.speak(utterance);$('audio-btn').classList.add('speaking');setTimeout(()=>$('audio-btn').classList.remove('speaking'),900);
 }
+function spendFocus(cost){const before=state.focus;state.focus=Math.max(0,state.focus-cost);save();renderCampaign();return before-state.focus;}
+function costText(spent){return spent?` −${spent} Focus.`:' Focus is already empty.';}
 function hint(){
-  if(currentTier()===2)return;const word=currentWord();$('hint-btn').disabled=true;
-  if(currentTier()===0){const first=[...document.querySelectorAll('.slot')].find(slot=>!slot.textContent);$('feedback').textContent=first?`The next rune is “${word[Number(first.dataset.position)]}”.`:'All runes are placed.';}
-  else{const first=[...document.querySelectorAll('.missing-word input')].find(input=>!input.value);if(first){first.value=word[Number(first.dataset.position)];first.dispatchEvent(new Event('input'));}$('feedback').textContent='One faded rune has returned.';}
+  if(currentTier()===2)return;const word=currentWord();$('hint-btn').disabled=true;const spent=spendFocus(1);
+  if(currentTier()===0){const first=[...document.querySelectorAll('.slot')].find(slot=>!slot.textContent);$('feedback').textContent=(first?`The next rune is “${word[Number(first.dataset.position)]}”.`:'All runes are placed.')+costText(spent);}
+  else{const first=[...document.querySelectorAll('.missing-word input')].find(input=>!input.value);if(first){first.value=word[Number(first.dataset.position)];first.dispatchEvent(new Event('input'));}$('feedback').textContent='One faded rune has returned.'+costText(spent);}
   $('feedback').className='feedback try';
 }
 function check(){
   if(state.locked)return;const word=currentWord(),tier=currentTier();state.attempts[word]=(state.attempts[word]||0)+1;
-  if(!answerMatches(state.answer,word)){state.streak=0;$('feedback').textContent=state.answer?'Not yet. Study the spelling and try once more.':'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
-  state.locked=true;state.streak++;state.stars+=TRIALS[tier].reward;
+  if(!answerMatches(state.answer,word)){state.streak=0;const spent=state.answer?spendFocus(2):0;const retry=tier===2?'Not yet. Listen once more and try again.':'Not yet. Study the red letters and try once more.';$('feedback').textContent=state.answer?retry+costText(spent):'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
+  state.locked=true;state.streak++;state.stars+=TRIALS[tier].reward;state.focus=Math.min(10,state.focus+1);
   if(tier<2){state.progress[word]=tier+1;$('feedback').textContent=tier===0?`The runes of ${placeFor(word)} begin to glow. “${word}” is ready for a harder trial.`:`A hidden path opens at ${placeFor(word)}. One final Voice Trial remains for “${word}”.`;state.lastMastered=false;}
   else{state.mastered.push(word);state.active.splice(state.cursor,1);delete state.progress[word];if(state.queue.length)state.active.push(state.queue.shift());state.lastMastered=true;$('feedback').innerHTML=`<div class="victory-reveal">${jewelMarkup(word)}<div><strong>Victory at ${placeFor(word)}!</strong><small>“${escapeHtml(word)}” mastered · jewel earned</small></div></div>`;}
   $('feedback').className='feedback good';$('check-btn').classList.add('hidden');$('next-btn').classList.remove('hidden');$('hint-btn').disabled=true;$('audio-btn').disabled=true;save();renderCampaign();

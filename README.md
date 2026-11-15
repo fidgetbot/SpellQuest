@@ -12,5 +12,6 @@ https://fidgetbot.github.io/SpellQuest/
 - Fading Script: supply more than half of the spelling
 - Voice Trial: hear the word and spell it from scratch without hints
 - Victory Vault: collect one jewel per mastered word
+- Focus: wrong submitted answers cost 2; optional hints cost 1; correct answers restore 1
 
 Only 10 words are active at once; new entries automatically arrive from the queue as words are mastered. Progress is saved locally in the browser. The game has no accounts, advertisements, or external services.
