@@ -296,3 +296,29 @@ button:focus-visible { outline:3px solid #3289b2; outline-offset:3px; }
 .fading-slot.selected { outline:3px solid #11636a; outline-offset:2px; }
 .keyboard-help { text-align:center; font-size:.8rem; color:#51442d; }
 #answer-area > .voice-keyboard { margin:auto; }
+.realm-overview { margin:10px 0; color:#fff0c9; }
+.realm-overview b,.realm-overview small { display:block; }
+.realm-overview b { font:700 1.2rem Georgia,serif; }
+.realm-overview small { margin-top:5px; color:#cfd5cf; font-size:.75rem; }
+.quest-map-art { background-image:url('assets/realm-atlas.webp'); background-size:400% 300%; background-position:var(--realm-x,0%) var(--realm-y,0%); }
+.realm-thumb { display:block; aspect-ratio:1; background:url('assets/realm-atlas.webp'); background-size:400% 300%; background-position:var(--realm-x) var(--realm-y); border-radius:5px; }
+.world-realms { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin:16px 0; }
+.realm-tile { padding:4px; background:#0b2631; color:#fff2cc; border:1px solid #806035; border-radius:8px; font-size:.65rem; }
+.realm-tile.restored { border:2px solid #81e7b5; box-shadow:0 0 8px #65ddaf50; }
+.realm-tile.restored::after { content:'✓'; color:#81e7b5; }
+.realm-tile.current { border:2px solid #ffdc84; }
+.realm-tile.unreached .realm-thumb { filter:grayscale(.85) brightness(.48); }
+.party-rewards { margin:12px 0; color:#e6ca88; font-size:.8rem; }
+#journal-btn { width:100%; }
+#journal-dialog { width:min(660px,calc(100% - 20px)); max-height:85dvh; overflow:auto; color:#302719; border:2px solid #b58c47; border-radius:16px; background:#fff1d4; padding:22px; }
+#journal-dialog::backdrop { background:#05131de6; }
+#journal-dialog p { line-height:1.65; }
+#journal-dialog h3 { border-top:1px solid #b58c47; padding-top:14px; }
+#journal-dialog summary { padding:12px 0; cursor:pointer; }
+#journal-close { position:sticky; bottom:0; width:100%; }
+#migration-note { font-size:.8rem; padding:10px; background:#fff3dbe0; border:1px solid #b58c47; border-radius:8px; }
+.story-passage:focus { outline:2px solid #a7803b; }
+@media(max-width:760px) {
+ .realm-overview { grid-column:1 / -1; margin:2px 0 5px; }
+ .map:not(.expanded) .quest-map-art { background-size:400% 300%; background-position:var(--realm-x,0%) var(--realm-y,0%); height:190px; }
+}

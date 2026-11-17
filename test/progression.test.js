@@ -13,6 +13,7 @@ function createGame(saved=null){
   if(saved)dom.window.localStorage.setItem('spellQuestMasteryV1',JSON.stringify(saved));
   dom.window.eval(fs.readFileSync(path.join(root,'words.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'definitions.js'),'utf8'));
+  dom.window.eval(fs.readFileSync(path.join(root,'story-content.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'story.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'game.js'),'utf8'));
   dom.window.document.getElementById(saved?'continue-btn':'start-btn').click();
@@ -179,18 +180,6 @@ test('a corrected Voice Trial mistake does not award a jewel until a clean revis
   assert.deepEqual(errors,[]);dom.window.close();
 });
 
-test('a chapter ending stays locked until its tenth word passes the Voice Trial',()=>{
-  const all=wordBank(),chapter=all.slice(0,10),last=chapter.at(-1),save=baseSave({active:[last],queue:all.slice(10),mastered:chapter.slice(0,-1),progress:{[last]:2},cursor:0,chapterStart:0,chapterTarget:10});
-  const {dom,errors}=createGame(save);type(dom,last);dom.window.document.getElementById('check-btn').click();
-  assert.ok(dom.window.document.getElementById('ending').classList.contains('hidden'));
-  dom.window.document.getElementById('next-btn').click();
-  assert.ok(!dom.window.document.getElementById('ending').classList.contains('hidden'));
-  assert.equal(dom.window.document.querySelectorAll('#word-report .jewel-win').length,10);
-  dom.window.document.getElementById('replay-btn').click();
-  assert.ok(dom.window.document.getElementById('ending').classList.contains('hidden'));
-  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).chapterStart,10);
-  assert.deepEqual(errors,[]);dom.window.close();
-});
 
 test('every word has a local definition and each trial restores it beneath the heading',()=>{
   for(const tier of [0,1,2]){
@@ -272,56 +261,6 @@ test('map toggle is reversible and trial themes retain the same audio control',(
   }
 });
 
-test('story advances once per completion, survives reload, and stays hidden during answers',()=>{
-  const first=createGame(baseSave({progress:{Machine:2}})),doc=first.dom.window.document;
-  type(first.dom,'wrong');doc.getElementById('check-btn').click();
-  assert.equal(JSON.parse(first.dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,0);
-  assert.equal(doc.querySelector('.story-passage'),null);
-  type(first.dom,'Machine');doc.getElementById('check-btn').click();
-  assert.match(doc.querySelector('.story-passage p').textContent,/You reach Briarwood Crossing/);
-  const sentence=doc.querySelector('.story-passage p').textContent;
-  doc.getElementById('check-btn').click();
-  let saved=JSON.parse(first.dom.window.localStorage.getItem('spellQuestMasteryV1'));
-  assert.equal(saved.storyVictories,1);assert.equal(saved.storyJournal.length,1);
-  assert.deepEqual(saved.mastered,[]); // A corrected visit advances narrative, not mastery.
-  doc.getElementById('next-btn').click();
-  assert.equal(doc.querySelector('.story-passage'),null);assert.equal(doc.querySelector('.story-journal'),null);
-  saved=JSON.parse(first.dom.window.localStorage.getItem('spellQuestMasteryV1'));saved.cursor=0;first.dom.window.close();
-  const resumed=createGame(saved);type(resumed.dom,'Machine');resumed.dom.window.document.getElementById('check-btn').click();
-  const next=resumed.dom.window.document.querySelector('.story-passage p').textContent;
-  assert.notEqual(next,sentence);assert.match(next,/freeing a scout/);
-  assert.equal(JSON.parse(resumed.dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,2);
-  assert.deepEqual(resumed.errors,[]);resumed.dom.window.close();
-});
-
-test('adventure text covers the full clean campaign without identical sentences or missing placeholders',()=>{
-  const {dom}=createGame(),seen=new Set();
-  for(let index=0;index<wordBank().length*3;index++){
-    const entry=dom.window.storyVictory(index);
-    assert.ok(entry.text.includes('you ')||entry.text.startsWith('You '));
-    assert.ok(!/[{}]/.test(entry.text));assert.ok(!seen.has(entry.text),'Repeated sentence '+index);
-    seen.add(entry.text);
-  }
-  dom.window.close();
-});
-
-test('new campaign clears story and completed chapters keep it',()=>{
-  const saved=baseSave({storyVictories:24,storyJournal:[{heading:'Earlier',text:'A previous adventure.'}]});
-  const {dom}=createGame(saved);
-  dom.window.document.getElementById('start-btn').click();
-  for(const c of 'Machine')[...dom.window.document.querySelectorAll('.letter:not(.used)')].find(b=>b.textContent===c).click();
-  dom.window.document.getElementById('check-btn').click();
-  assert.equal(JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,1);
-  dom.window.close();
-  const all=wordBank(),chapter=all.slice(0,10),last=chapter.at(-1);
-  const final=createGame(baseSave({active:[last],queue:all.slice(10),mastered:chapter.slice(0,-1),progress:{[last]:2},storyVictories:29,storyJournal:[]}));
-  type(final.dom,last);final.dom.window.document.getElementById('check-btn').click();final.dom.window.document.getElementById('next-btn').click();
-  assert.match(final.dom.window.document.getElementById('ending-copy').textContent,/Ink Regent/);
-  assert.ok(!final.dom.window.document.getElementById('ending-title').textContent.includes('falls'));
-  final.dom.window.document.getElementById('replay-btn').click();
-  assert.equal(JSON.parse(final.dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,30);
-  final.dom.window.close();
-});
 test('Fading Script has no native editable fields and supports selection, backspace and clear',()=>{
   const {dom}=createGame(baseSave({progress:{Machine:1}})),doc=dom.window.document;
   assert.equal(doc.querySelectorAll('#answer-area input,#answer-area textarea,#answer-area [contenteditable]').length,0);
@@ -331,4 +270,84 @@ test('Fading Script has no native editable fields and supports selection, backsp
   setFading(dom,slots[0],'z');[...doc.querySelectorAll('.voice-key')].find(b=>b.textContent==='Clear').click();
   assert.ok(slots.every(s=>!s.textContent));doc.getElementById('check-btn').click();assert.equal(doc.getElementById('hearts').textContent,'5 / 10');
   dom.window.close();
+});
+
+function savedState(dom){return JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1'));}
+function solveCurrent(dom,word,tier){
+  const doc=dom.window.document;
+  if(tier===0)for(const c of word)if(/^[A-Za-zÀ-ÿ]$/.test(c))[...doc.querySelectorAll('.letter:not(.used)')].find(b=>b.textContent===c).click();
+  else {}
+  if(tier===1)fillFading(dom,word);
+  if(tier===2)type(dom,word);
+  doc.getElementById('check-btn').click();
+}
+test('canonical content has 12 different realms, 96 scenes and 1116 nonlooping beats',()=>{
+  const {dom}=createGame(),realms=dom.window.STORY_REALMS,ids=new Set(),sentences=new Set();
+  assert.equal(realms.length,12);
+  for(const realm of realms){
+    assert.equal(realm.beats.length,93);assert.equal(new Set(realm.beats.map(b=>b.scene)).size,8);
+    for(const beat of realm.beats){assert.ok(!ids.has(beat.id));assert.ok(!sentences.has(beat.text));ids.add(beat.id);sentences.add(beat.text);assert.ok(!/[{}]/.test(beat.text));}
+  }
+  assert.equal(ids.size,1116);assert.throws(()=>dom.window.storyVictory(1116));assert.throws(()=>dom.window.storyVictory(-1));
+  dom.window.close();
+});
+test('practice never advances canonical story and legacy completion counters are ignored',()=>{
+  const {dom}=createGame(baseSave({progress:{Machine:2},storyVictories:900,hearts:5}));
+  type(dom,'wrong');dom.window.document.getElementById('check-btn').click();
+  type(dom,'Machine');dom.window.document.getElementById('check-btn').click();
+  assert.equal(savedState(dom).storyVictories,2);
+  assert.match(dom.window.document.querySelector('.story-passage').textContent,/moment to recover/);
+  assert.deepEqual(savedState(dom).mastered,[]);assert.equal(savedState(dom).hearts,5);
+  dom.window.close();
+});
+test('a realm boundary survives victory reload and interlude reload without duplicate rewards',()=>{
+  const all=wordBank(),word=all[30],save=baseSave({mastered:all.slice(0,30),active:all.slice(30,40),queue:all.slice(40),progress:{[word]:2},storyVictories:800});
+  const first=createGame(save);type(first.dom,word);first.dom.window.document.getElementById('check-btn').click();
+  let stored=savedState(first.dom);assert.equal(stored.storyVictories,93);assert.ok(stored.pendingVictory.boundary);
+  const hearts=stored.hearts;first.dom.window.close();
+  const resume=createGame(stored);
+  assert.ok(!resume.dom.window.document.getElementById('next-btn').classList.contains('hidden'));
+  assert.equal(resume.dom.window.document.querySelector('.story-passage h3').textContent.includes('Briarwood'),true);
+  resume.dom.window.document.getElementById('next-btn').click();stored=savedState(resume.dom);
+  assert.ok(stored.interlude);assert.equal(stored.hearts,hearts);resume.dom.window.close();
+  const ending=createGame(stored);assert.match(ending.dom.window.document.getElementById('ending-title').textContent,/Briarwood restored/);
+  ending.dom.window.document.getElementById('replay-btn').click();
+  assert.equal(savedState(ending.dom).interlude,false);
+  assert.equal(ending.dom.window.document.getElementById('realm-name').textContent,'Drowned Archives');
+  assert.equal(savedState(ending.dom).hearts,hearts);ending.dom.window.close();
+});
+test('legacy migrations preserve early, middle and final-word achievements and unlock a recap',()=>{
+  const all=wordBank();
+  for(const mastered of [0,180,371]){
+    const word=all[mastered],{dom}=createGame(baseSave({active:all.slice(mastered,mastered+10),queue:all.slice(mastered+10),mastered:all.slice(0,mastered),progress:{[word]:2},hearts:7,stars:99,storyVictories:9999}));
+    assert.equal(dom.window.document.getElementById('hearts').textContent,'7 / 10');
+    assert.ok(!dom.window.document.getElementById('migration-note').classList.contains('hidden'));
+    dom.window.document.getElementById('journal-btn').click();assert.match(dom.window.document.getElementById('journal-content').textContent,/recap/);
+    dom.window.document.getElementById('journal-close').click();assert.equal(dom.window.document.getElementById('journal-content').textContent,'');
+    type(dom,word);dom.window.document.getElementById('check-btn').click();
+    assert.equal(savedState(dom).storyVictories,mastered*3+3);assert.equal(savedState(dom).hearts,8);
+    if(mastered===371){assert.match(dom.window.document.querySelector('.story-passage p').textContent,/final earned jewel/);dom.window.document.getElementById('next-btn').click();assert.match(dom.window.document.getElementById('ending-title').textContent,/kingdom free/);}
+    dom.window.close();
+  }
+});
+test('a new campaign resets narrative state, and frozen rosters do not absorb added words',()=>{
+  const all=wordBank(),roster=all.slice(0,10),{dom}=createGame(baseSave({campaignWords:roster,narrativeVersion:2,queue:[],progress:{Machine:1}}));
+  fillFading(dom,'Machine');dom.window.document.getElementById('check-btn').click();
+  assert.deepEqual(savedState(dom).campaignWords,Array.from(roster));assert.equal(savedState(dom).queue.length,0);
+  dom.window.document.getElementById('start-btn').click();
+  solveCurrent(dom,'Machine',0);assert.equal(savedState(dom).storyVictories,1);assert.equal(savedState(dom).campaignWords.length,372);
+  dom.window.close();
+});
+test('entire clean campaign plays all 1116 beats once, twelve realm endings and final mastery',()=>{
+  const {dom,errors}=createGame(),doc=dom.window.document,all=wordBank();
+  let snapshot={active:all.slice(0,10),cursor:0,progress:{}},count=0,endings=0;
+  while(count<1116){
+    const word=snapshot.active[snapshot.cursor],tier=snapshot.progress[word]||0;
+    solveCurrent(dom,word,tier);snapshot=savedState(dom);count++;
+    assert.equal(snapshot.storyVictories,count);assert.equal(snapshot.pendingVictory.story.id,dom.window.storyVictory(count-1).id);
+    doc.getElementById('check-btn').click();assert.equal(savedState(dom).storyVictories,count);
+    doc.getElementById('next-btn').click();snapshot=savedState(dom);
+    if(snapshot.interlude){endings++;if(count<1116){doc.getElementById('replay-btn').click();snapshot=savedState(dom);}}
+  }
+  assert.equal(endings,12);assert.equal(snapshot.mastered.length,372);assert.deepEqual(errors,[]);dom.window.close();
 });

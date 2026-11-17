@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#18233c">
   <title>Word Quest: The Shattered Lexicon</title>
-  <link rel="stylesheet" href="styles.css?v=20261116.1">
+  <link rel="stylesheet" href="styles.css?v=20261116.2">
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -27,7 +27,7 @@
       <div class="crest" aria-hidden="true">W</div>
       <p class="eyebrow">A spelling adventure</p>
       <h2>The Ink Regent has stolen the kingdom’s voice.</h2>
-      <p>You are the last keeper of a light-forged blade, and a small fox named Pip is waiting at the broken gate. Fight shadow guardians, rescue lost voices, and gather the jewels that can break the Regent’s spell. Every completed challenge reveals the next moment of your adventure.</p>
+      <p>You are the last keeper of a light-forged blade, and a small fox is trapped beyond the broken gate. Fight shadow guardians, rescue lost voices, and gather the jewels that can break the Regent’s spell. Every clean trial advancement reveals the next moment of your adventure across twelve realms; practice helps you prepare without skipping the story.</p>
       <p>Start with 5 hearts. Complete a challenge to earn one; an incorrect check or a hint costs one. At zero, keep trying to earn hearts back. Definitions and audio replays are free.</p>
       <button id="start-btn" class="primary">Begin the quest</button>
       <button id="continue-btn" class="secondary hidden">Continue saved quest</button>
@@ -41,6 +41,7 @@
             <span id="active-count">10 active</span>
           </div>
           <button id="map-toggle" class="secondary map-toggle" aria-expanded="false" aria-controls="map-details">Explore map</button>
+          <div class="realm-overview"><b id="realm-name"></b><small id="realm-progress"></small><small id="realm-objective"></small></div>
           <div class="quest-map-art" aria-label="Map of the ten active quests">
             <div class="map-moon"></div>
             <div class="map-mountain mountain-one"></div>
@@ -51,6 +52,7 @@
             <div id="map-nodes" class="map-nodes"></div>
           </div>
           <div id="map-details">
+          <div id="world-realms" class="world-realms"></div><div id="party-rewards" class="party-rewards"></div><button id="journal-btn" class="secondary">Read adventure journal</button>
           <div class="vault-heading"><span>Victory vault</span><small id="queue-count"></small></div>
           <div id="jewel-vault" class="jewel-vault"></div>
           <div class="hero-card">
@@ -67,7 +69,7 @@
           </div>
           <div id="prompt-area"></div>
           <div id="audio-control"></div>
-          <div id="answer-area"></div>
+          <p id="migration-note" class="hidden"></p><div id="answer-area"></div>
           <div id="feedback" class="feedback" role="status"></div>
           <div class="actions">
             <button id="hint-btn" class="secondary">Use a hint (1 heart)</button>
@@ -87,10 +89,12 @@
       <div id="word-report" class="word-report"></div>
       <button id="replay-btn" class="primary">Begin next chapter</button>
     </section>
+  <dialog id="journal-dialog"><h2>Adventure journal</h2><div id="journal-content"></div><button id="journal-close" class="primary">Return to challenge</button></dialog>
   </main>
-  <script src="words.js?v=20261116.1"></script>
-  <script src="definitions.js?v=20261116.1"></script>
-  <script src="story.js?v=20261116.1"></script>
-  <script src="game.js?v=20261116.1"></script>
+  <script src="words.js?v=20261116.2"></script>
+  <script src="definitions.js?v=20261116.2"></script>
+  <script src="story-content.js?v=20261116.2"></script>
+  <script src="story.js?v=20261116.2"></script>
+  <script src="game.js?v=20261116.2"></script>
 </body>
 </html>

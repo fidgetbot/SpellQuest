@@ -1,6 +1,6 @@
 # Word Quest: a continuous twelve-realm adventure
 
-Status: approved direction, implementation planned. This document does not change the live game.
+Status: implemented in narrative version 2. See SPEC.md and story/BIBLE.md for shipped behavior and continuity review. This file retains the original design rationale.
 
 ## Scope and pacing
 

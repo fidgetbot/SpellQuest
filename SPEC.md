@@ -12,7 +12,7 @@ SpellQuest is a fifth-grade spelling mastery game. Success in increasingly diffi
 - `Mom` and `mom` remain separate, case-sensitive capitalization lessons.
 - No more than 10 unmastered words may be active at once.
 - When an active word is mastered, the next queued word immediately fills the open slot.
-- Saved games reconcile against the current word bank: removed entries disappear and newly appended entries join the queue without resetting prior mastery.
+- A campaign freezes its word roster when created (or migrated). Later bank additions enter new campaigns rather than changing the length of an existing story. Historical roster entries are retained if removed from the authoring bank; a generic audio-based definition fallback is available when an old definition no longer exists.
 
 ## Mastery loop
 
@@ -43,8 +43,8 @@ Child-friendly definitions appear immediately beneath the challenge heading in a
 - Each active word has a generated RPG location derived from the word itself, so locations and jewel identities stay stable across sessions.
 - The quest surface is a graphical RPG map with a winding trail, landscape landmarks, one persistent node per active word, tier styling, and a hero marker at the current node.
 - While a spelling challenge is active, the target word must never be visible elsewhere on the page—not in a roster, map node, status, instruction, tooltip, or accessibility label. The Rune Path shows only its shuffled pool, Fading Script shows only puzzle-retained letters, and the Voice Trial supplies the target through audio. The word may appear after a correct submission because the attempt has ended.
-- Each story chapter contains up to 10 mastery victories. Its ending remains locked until every chapter word has passed its Voice Trial.
-- Completing a chapter preserves cumulative jewels and opens the next chapter from the queue. Completing the entire bank produces the final Crown of Lexicon ending.
+- The twelve narrative realms contain 93 clean trial advancements each for the current 372-word roster. The active ten-word roster may span realm boundaries.
+- Every 93 advancements, Continue story opens a realm interlude. Continuing preserves the active roster, partial tiers, jewels and hearts. Completing the frozen roster produces the final Crown of Lexicon ending.
 
 ## Persistence
 
@@ -73,10 +73,16 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Phone layout places a compact map above one active trial. Explore map expands the map and victory vault; short phone screens collapse map artwork by default. Desktop uses two columns.
 - Voice audio sits above the answer and in-game keyboard. Visible focus styles and at least 44px-high keyboard keys support interaction; reduced-motion settings disable decorative animation.
 
-## Player-led adventure
-- The protagonist is the player, traveling with Pip the fox to defeat the Ink Regent and restore the kingdom's stolen voices.
-- Every completed challenge, including a corrected practice visit, reveals exactly one new second-person story sentence. Wrong checks, hints, repeated clicks after completion, and audio do not advance the story.
-- Story order is independent of word/trial order: 24 authored beats form a connected expedition (rescue, exploration, battles, a firebird and beacon), with changing regions and foes on subsequent expeditions. Chapter interludes describe breaches in the Regent's defenses; only mastery of the full bank defeats him.
-- Story victories persist across reloads and spelling chapters. Legacy campaigns start the new narrative at its opening without losing spelling progress; new campaigns reset narrative progress.
-- The latest 60 story sentences are kept in a collapsible journal shown only on the victory screen, so previous prose cannot expose a target during an active trial.
-- Success remains on screen indefinitely until Continue story. Story completion does not bypass mastery rules, change star/heart rewards, or trigger automatic progression.
+## Player-led adventure (version 2)
+- Twelve distinct realms, 96 authored scenes, 1,116 individually written sentences, stored in story/realms and compiled into story-content.js.
+- Read story/BIBLE.md for character continuity, object custody, consequences, and content-review notes.
+- Main plot advances only on a clean tier advancement or mastery, not corrected/hinted practice visits. Practice still restores one heart and gives recovery feedback.
+- Canonical progression derives from three advances per mastered word plus partial tiers of active words; it does not trust the old raw-completion story counter.
+- With the 372-word roster, every advancement unlocks exactly one beat. Frozen rosters of other lengths are proportionally mapped to the same authored campaign, rather than looping its content.
+- Every beat has a stable ID, scene, previous-beat prerequisite and explicit milestone effects. Party/equipment/map state derives from unlocked canonical progress.
+- World-map tiles move from unreached to current to restored. The current realm has distinct generated artwork; earned companions and narrative equipment remain listed.
+- Realm names and reward labels that contain the current target are suppressed on the answer surface. The journal is modal, pauses answer interaction, and removes its prose from the DOM on close.
+- The full unlocked journal contains scene text and realm summaries; it never reveals future plot.
+- Version-1 saves retain mastery, partial tiers, stars and hearts. Canonical placement derives from earned advancements; earlier new-story passages are explicitly marked as a migration recap, not previously played events.
+- A persisted pending victory and interlude state preserve the story screen across reloads, without duplicate rewards or skipped realm transitions.
+- No automatic advancement: the player controls Continue story and Enter next realm. Only full frozen-roster mastery unlocks the final resolution.

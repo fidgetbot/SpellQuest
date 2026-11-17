@@ -2,7 +2,8 @@
   "name": "spellquest",
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "build:story": "node scripts/build-story.js"
   },
   "devDependencies": {
     "jsdom": "27.0.1"
