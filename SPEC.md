@@ -41,7 +41,7 @@ Child-friendly definitions appear immediately beneath the challenge heading in a
 - Each mastered word earns one deterministic jewel whose color is derived from the word itself.
 - The jewel is shown in the success moment and retained in the Victory Vault.
 - Each active word has a generated RPG location derived from the word itself, so locations and jewel identities stay stable across sessions.
-- The quest surface is a graphical RPG map with a winding trail, landscape landmarks, one persistent node per active word, tier styling, and a hero marker at the current node.
+- The quest surface is a geographic RPG map with connected illustrated paths and eight inspectable story-scene landmarks per realm. The current marker follows canonical story progress, independently of the active spelling-word cursor.
 - While a spelling challenge is active, the target word must never be visible elsewhere on the page—not in a roster, map node, status, instruction, tooltip, or accessibility label. The Rune Path shows only its shuffled pool, Fading Script shows only puzzle-retained letters, and the Voice Trial supplies the target through audio. The word may appear after a correct submission because the attempt has ended.
 - The twelve narrative realms contain 93 clean trial advancements each for the current 372-word roster. The active ten-word roster may span realm boundaries.
 - Every 93 advancements, Continue story opens a realm interlude. Continuing preserves the active roster, partial tiers, jewels and hearts. Completing the frozen roster produces the final Crown of Lexicon ending.
@@ -92,4 +92,10 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Eight live markers correspond to the eight authored scenes: gate, thorn wagon, stump shelter, workshop, mill courtyard, crossroads, village bell, river landing. Their coordinates were placed against the generated artwork, not reused from the roster layout.
 - Markers advance with narrative scenes, not with the active-word cursor. They can be tapped for location/status but do not skip story or select words. Previous stops receive a completion mark.
 - The map remains square at every viewport size so marker-to-landmark registration is preserved. Realm-boundary victories keep the outgoing map until Continue story.
-- This revision applies only to Briarwood; other realms retain their existing maps pending review of this example.
+- All twelve realms now use the geographic map treatment: standalone square artwork, eight registered landmarks, and no generic dotted overlay. `realm-maps.js` owns asset IDs and normalized marker coordinates; authored `sceneIndex` owns progress. Clicking a marker only updates its caption; it never skips story progression or changes the spelling roster. The original atlases remain archived for provenance and trial backgrounds, not active realm maps.
+
+## Realm map completion
+- Realm maps are individually generated, with setting-specific routes: archive walkways, city streets, desert trails, forest bridges, volcanic evacuation roads, sky-island crossings, coastal quays, observatory galleries, coalition roads, library corridors, and citadel rooms.
+- Original PNGs and generation specifications are preserved under `assets/source/`; runtime WebPs are served from `assets/`.
+- All map artwork retains its square aspect ratio on phones and desktops, including expanded mode. Realm-boundary victories retain the outgoing map until Continue story.
+- Map captions and accessibility labels respect the current spelling target concealment rule.

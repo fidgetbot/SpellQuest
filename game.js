@@ -10,7 +10,6 @@ const TRIALS=[
 const SPANISH=new Set(['empresa','abrigo','nevera','tal vez','volver']);
 const PLACE_FIRST=['Whispering','Silver','Crooked','Riddle','Thorn','Mirror','Moonlit','Shadow','Twin','Golden','Crystal','Emerald'];
 const PLACE_LAST=['Gate','Meadow','Bridge','Woods','Keep','Caves','Stage','Fen','Towers','Library','Hall','Sanctum'];
-const MAP_POSITIONS=[[8,78],[24,65],[43,76],[62,64],[82,73],[88,48],[69,39],[49,50],[29,35],[47,17]];
 const state={active:[],queue:[],mastered:[],progress:{},cursor:0,chapterStart:0,chapterTarget:ACTIVE_LIMIT,stars:0,streak:0,hearts:STARTING_HEARTS,storyVictories:0,storyJournal:[],narrativeVersion:NARRATIVE_VERSION,campaignWords:[...WORD_BANK],pendingVictory:null,interlude:false,migrationRecap:false,recapThrough:0,attempts:{},answer:'',locked:false,lastMastered:false,visitFailed:false,hintUsed:false};
 const $=id=>document.getElementById(id);
 const shuffle=array=>[...array].sort(()=>Math.random()-.5);
@@ -55,33 +54,26 @@ function renderCampaign(){
   $('mastered-count').textContent=`${state.mastered.length} / ${state.campaignWords.length}`;$('stars').textContent=state.stars;$('streak').textContent=state.streak;$('hearts').textContent=`${state.hearts} / ${MAX_HEARTS}`;
   $('hint-btn').disabled=state.locked||state.hearts===0||state.hintUsed;
   $('active-count').textContent=`${state.active.length} active`;$('queue-count').textContent=state.queue.length?`${state.queue.length} waiting`:'No words waiting';
-  $('map-nodes').innerHTML=state.active.map((word,index)=>{const [x,y]=MAP_POSITIONS[index],tier=state.progress[word]||0,current=index===state.cursor;return `<div class="quest-node tier-${tier} ${current?'current':''}" data-index="${index}" style="--x:${x}%;--y:${y}%" aria-label="Quest ${index+1}, trial ${tier+1}"><span>${current?'♞':index+1}</span></div>`;}).join('');
   $('jewel-vault').innerHTML=state.mastered.length?state.mastered.slice(-12).map(word=>jewelMarkup(word,true)).join(''):'<p class="empty-vault">Rewards will appear here.</p>';
   const position=storyPosition(state),realmIndex=Math.min(11,Math.floor((state.pendingVictory?.boundary?Math.max(0,position-1):position)/93)),realm=STORY_REALMS[realmIndex];
   $('realm-name').textContent=currentWord()&&realm.name.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'Realm '+(realmIndex+1):realm.name;$('realm-progress').textContent='Realm '+(realmIndex+1)+' / 12 · '+Math.min(93,position-realmIndex*93)+' / 93';
   $('realm-objective').textContent=currentWord()&&realm.goal.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'Continue your journey':realm.goal;
-  const art=document.querySelector('.quest-map-art');art.style.setProperty('--realm-x',(realmIndex%4)*100/3+'%');art.style.setProperty('--realm-y',Math.floor(realmIndex/4)*50+'%');
-
-  art.dataset.map=realmIndex===0?'briarwood':'atlas';
+  const art=document.querySelector('.quest-map-art'),map=REALM_MAPS[realmIndex];
+  art.dataset.map=map.id;
+  art.style.setProperty('--realm-map','url("assets/'+map.id+'-map.webp")');
   const safeMapLabel=(label,fallback)=>currentWord()&&label.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?fallback:label;
-  $('map-caption').textContent='';
-  if(realmIndex===0){
-    const locations=[
-      [14,85,'Broken gate'],[29,69,'Thorn wagon'],[19,44,'Stump shelter'],[43,43,'Smith workshop'],
-      [60,45,'Mill courtyard'],[48,64,'Crossroads'],[75,74,'Village bell'],[87,22,'River landing']
-    ];
-    const current=Math.min(7,Math.floor(position/12));
-    $('map-nodes').innerHTML=locations.map(([x,y,label],index)=>{
-      const status=position>=93||index<current?'visited':index===current?'current':'ahead';
-      return '<button type="button" class="quest-node landmark '+status+'" data-index="'+index+'" style="--x:'+x+'%;--y:'+y+'%" aria-label="'+escapeHtml(safeMapLabel(label,'Location '+(index+1)))+', '+status+'"><span>'+(status==='visited'?'✓':index+1)+'</span></button>';
-    }).join('');
-    $('map-caption').textContent=safeMapLabel(locations[current][2],'Current location')+' · '+(current+1)+' / 8';
-    document.querySelectorAll('.landmark').forEach(button=>button.onclick=()=>{
-      const index=Number(button.dataset.index);
-      $('map-caption').textContent=safeMapLabel(locations[index][2],'Location '+(index+1))+' · '+(index<current||position>=93?'Visited':index===current?'You are here':'Ahead');
-    });
-    art.setAttribute('aria-label','Briarwood story map with eight locations');
-  }else art.setAttribute('aria-label','Map of the active quests');
+  const localPosition=Math.min(93,Math.max(0,position-realmIndex*93));
+  const current=realm.beats[Math.min(92,localPosition)].sceneIndex;
+  $('map-nodes').innerHTML=map.locations.map(([x,y,label],index)=>{
+    const status=localPosition>=93||index<current?'visited':index===current?'current':'ahead';
+    return '<button type="button" class="quest-node landmark '+status+'" data-index="'+index+'" style="--x:'+x+'%;--y:'+y+'%" aria-label="'+escapeHtml(safeMapLabel(label+', '+status,String(index+1)))+'"><span>'+(status==='visited'?'✓':index+1)+'</span></button>';
+  }).join('');
+  $('map-caption').textContent=safeMapLabel(map.locations[current][2]+' · '+(current+1)+' / 8',(current+1)+' / 8');
+  document.querySelectorAll('.landmark').forEach(button=>button.onclick=()=>{
+    const index=Number(button.dataset.index);
+    $('map-caption').textContent=safeMapLabel(map.locations[index][2]+' · '+(index<current||localPosition>=93?'Visited':index===current?'You are here':'Ahead'),(index+1)+' / 8');
+  });
+  art.setAttribute('aria-label',safeMapLabel(realm.name+' story map with eight locations',String(realmIndex+1)));
   const rewards=unlockedRewards(position);$('party-rewards').textContent=rewards.length?rewards.map(label=>currentWord()&&label.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'◆':label).join(' · '):'Your journey begins';
 
   if(state.active.length){$('location-name').textContent=placeFor(currentWord());$('quest-note').textContent=`Trial ${currentTier()+1} of 3 · ${TRIALS[currentTier()].name}`;}

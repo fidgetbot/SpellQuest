@@ -316,14 +316,14 @@ button:focus-visible { outline:3px solid #3289b2; outline-offset:3px; }
  .map:not(.expanded) .quest-map-art { background-size:400% 300%; background-position:var(--realm-x,0%) var(--realm-y,0%); height:190px; }
 }
 /* Briarwood is registered to a square geographic illustration, never stretched. */
-.quest-map-art[data-map="briarwood"],
-.map:not(.expanded) .quest-map-art[data-map="briarwood"],
-.map.expanded .quest-map-art[data-map="briarwood"] {
-  background-image:url('assets/briarwood-map.webp');
+.quest-map-art[data-map],
+.map:not(.expanded) .quest-map-art[data-map],
+.map.expanded .quest-map-art[data-map] {
+  background-image:var(--realm-map);
   background-size:100% 100%; background-position:center;
   width:100%; height:auto; aspect-ratio:1;
 }
-.quest-map-art[data-map="briarwood"] .map-trail { display:none; }
+.quest-map-art[data-map] .map-trail { display:none; }
 .landmark { padding:0; width:26px; height:26px; font-size:.75rem; }
 .landmark.current { width:32px; height:32px; font-size:1rem; animation:none; outline:3px solid #fff7c677; }
 .landmark.visited { background:#c9ead3; border-color:#276b53; color:#174b39; }

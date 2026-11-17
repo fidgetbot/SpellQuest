@@ -14,7 +14,7 @@ https://fidgetbot.github.io/SpellQuest/
 - Victory Vault: collect one jewel per mastered word
 - Focus: wrong submitted answers cost 2; optional hints cost 1; correct answers restore 1
 - Clean victories: a hint or wrong submission makes that visit practice-only, so the word returns later at the same tier
-- RPG quest map: travel a winding route through forests and mountains toward the castle
+- RPG quest maps: explore twelve illustrated realms with connected geographic routes and eight story-location markers each
 - Copy protection: the current target is hidden from map labels, status text, instructions, tooltips, and the rest of the visible interface
 
 Only 10 words are active at once; new entries automatically arrive from the queue as words are mastered. Progress is saved locally in the browser. The game has no accounts, advertisements, or external services.

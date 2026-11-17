@@ -15,6 +15,7 @@ function createGame(saved=null){
   dom.window.eval(fs.readFileSync(path.join(root,'definitions.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'story-content.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'story.js'),'utf8'));
+  dom.window.eval(fs.readFileSync(path.join(root,'realm-maps.js'),'utf8'));
   dom.window.eval(fs.readFileSync(path.join(root,'game.js'),'utf8'));
   dom.window.document.getElementById(saved?'continue-btn':'start-btn').click();
   return {dom,errors,spoken};
@@ -358,5 +359,26 @@ test('Briarwood locations follow story scenes instead of the active word cursor'
     assert.equal(doc.querySelectorAll('.landmark').length,8);assert.equal(Number(doc.querySelector('.landmark.current').dataset.index),expected);
     doc.querySelector('.landmark[data-index="7"]').click();assert.match(doc.getElementById('map-caption').textContent,/River landing/);
     assert.equal(Number(doc.querySelector('.landmark.current').dataset.index),expected);dom.window.close();
+  }
+});
+
+test('all twelve maps follow authored scenes and inspection never changes progress',()=>{
+  const all=wordBank();
+  for(let realm=0;realm<12;realm++)for(const local of [0,12,48,84,92]){
+    const advancements=realm*93+local,mastered=Math.floor(advancements/3),word=all[mastered];
+    const {dom,errors}=createGame(baseSave({narrativeVersion:2,campaignWords:all,mastered:all.slice(0,mastered),active:all.slice(mastered,mastered+10),queue:all.slice(mastered+10),progress:{[word]:advancements%3}}));
+    const doc=dom.window.document,map=dom.window.REALM_MAPS[realm];
+    assert.equal(doc.querySelector('.quest-map-art').dataset.map,map.id);
+    assert.ok(fs.existsSync(path.join(root,'assets',map.id+'-map.webp')));
+    assert.equal(doc.querySelectorAll('.landmark').length,8);
+    const scene=dom.window.STORY_REALMS[realm].beats[local].sceneIndex;
+    assert.equal(Number(doc.querySelector('.landmark.current').dataset.index),scene);
+    const before=dom.window.localStorage.getItem('spellQuestMasteryV1');
+    doc.querySelector('.landmark[data-index="7"]').click();
+    assert.equal(Number(doc.querySelector('.landmark.current').dataset.index),scene);
+    assert.equal(dom.window.localStorage.getItem('spellQuestMasteryV1'),before);
+    const mapText=[doc.getElementById('map-caption').textContent,doc.querySelector('.quest-map-art').getAttribute('aria-label'),...[...doc.querySelectorAll('.landmark')].map(node=>node.getAttribute('aria-label'))].join(' ').toLocaleLowerCase();
+    assert.ok(!mapText.includes(word.toLocaleLowerCase()),'Map conceals target: '+word);
+    assert.deepEqual(errors,[]);dom.window.close();
   }
 });
