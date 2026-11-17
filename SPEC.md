@@ -86,3 +86,10 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Version-1 saves retain mastery, partial tiers, stars and hearts. Canonical placement derives from earned advancements; earlier new-story passages are explicitly marked as a migration recap, not previously played events.
 - A persisted pending victory and interlude state preserve the story screen across reloads, without duplicate rewards or skipped realm transitions.
 - No automatic advancement: the player controls Continue story and Enter next realm. Only full frozen-roster mastery unlocks the final resolution.
+
+## Briarwood geographic map
+- Briarwood uses a dedicated illustrated overhead map with connected painted roads, a stream and a bridge; no generic dotted SVG route is drawn over it.
+- Eight live markers correspond to the eight authored scenes: gate, thorn wagon, stump shelter, workshop, mill courtyard, crossroads, village bell, river landing. Their coordinates were placed against the generated artwork, not reused from the roster layout.
+- Markers advance with narrative scenes, not with the active-word cursor. They can be tapped for location/status but do not skip story or select words. Previous stops receive a completion mark.
+- The map remains square at every viewport size so marker-to-landmark registration is preserved. Realm-boundary victories keep the outgoing map until Continue story.
+- This revision applies only to Briarwood; other realms retain their existing maps pending review of this example.

@@ -48,7 +48,7 @@ test('the supplied bank expands alternatives, preserves phrases, and removes ord
 
 test('only ten words are active and new bank entries are queued',()=>{
   const {dom,errors}=createGame();
-  assert.equal(dom.window.document.querySelectorAll('.quest-node').length,10);
+  assert.equal(dom.window.document.querySelectorAll('.quest-node').length,8);
   assert.match(dom.window.document.getElementById('queue-count').textContent,/waiting/);
   assert.ok(dom.window.document.querySelector('.quest-node.current'));
   assert.ok(dom.window.document.querySelector('.map-castle'));
@@ -107,8 +107,8 @@ test('a correct Rune Path advances the roster and fully renders the next challen
   dom.window.document.getElementById('next-btn').click();
   const saved=JSON.parse(dom.window.localStorage.getItem('spellQuestMasteryV1'));
   assert.equal(saved.progress.Machine,1);
-  assert.equal(dom.window.document.querySelectorAll('.quest-node').length,10);
-  assert.equal(dom.window.document.querySelector('.quest-node.current').dataset.index,'1');
+  assert.equal(dom.window.document.querySelectorAll('.quest-node').length,8);
+  assert.equal(dom.window.document.querySelector('.quest-node.current').dataset.index,'0');
   assert.ok(dom.window.document.querySelectorAll('.letter').length>=2);
   assert.deepEqual(errors,[]);dom.window.close();
 });
@@ -350,4 +350,13 @@ test('entire clean campaign plays all 1116 beats once, twelve realm endings and 
     if(snapshot.interlude){endings++;if(count<1116){doc.getElementById('replay-btn').click();snapshot=savedState(dom);}}
   }
   assert.equal(endings,12);assert.equal(snapshot.mastered.length,372);assert.deepEqual(errors,[]);dom.window.close();
+});
+test('Briarwood locations follow story scenes instead of the active word cursor',()=>{
+  for(const [advancements,expected] of [[0,0],[11,0],[12,1],[48,4],[84,7],[92,7]]){
+    const all=wordBank(),mastered=Math.floor(advancements/3),word=all[mastered],{dom}=createGame(baseSave({mastered:all.slice(0,mastered),active:all.slice(mastered,mastered+10),queue:all.slice(mastered+10),progress:{[word]:advancements%3}}));
+    const doc=dom.window.document;assert.equal(doc.querySelector('.quest-map-art').dataset.map,'briarwood');
+    assert.equal(doc.querySelectorAll('.landmark').length,8);assert.equal(Number(doc.querySelector('.landmark.current').dataset.index),expected);
+    doc.querySelector('.landmark[data-index="7"]').click();assert.match(doc.getElementById('map-caption').textContent,/River landing/);
+    assert.equal(Number(doc.querySelector('.landmark.current').dataset.index),expected);dom.window.close();
+  }
 });
