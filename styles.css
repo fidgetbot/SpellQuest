@@ -195,9 +195,7 @@ h1 { color:#fff0c5; text-shadow:0 3px 0 #503b1c,0 0 22px #d1a34150; line-height:
 .map-toggle { display:none; }
 .hero-card { background:#061d25aa; border:1px solid #8f713c; }
 .challenge { position:relative; isolation:isolate; overflow:hidden; color:#30281d; background:#f7e8c7; min-height:620px; padding:24px 28px 30px; }
-.challenge::before { content:''; position:absolute; inset:0; z-index:-2; background-image:url('assets/storybook-atlas.webp'); background-size:200% 200%; background-position:100% 0; }
-.challenge[data-trial="1"]::before { background-position:0 100%; }
-.challenge[data-trial="2"]::before { background-position:100% 100%; }
+.challenge::before { content:''; position:absolute; inset:0; z-index:-2; background-image:url('assets/realm-atlas.webp'); background-size:400% 300%; background-position:var(--challenge-x,0%) var(--challenge-y,0%); }
 .challenge::after { content:''; position:absolute; inset:95px 18px 24px; z-index:-1; background:#fff2d8b8; border-radius:40% 40% 15px 15px / 6% 6% 15px 15px; box-shadow:0 0 24px 14px #fff0d088; }
 .challenge-top { gap:8px; color:#fff0cd; text-shadow:0 1px 3px #000; }
 #round-count { border-radius:8px; background:#102b34de; padding:6px 8px; font-size:.7rem; }
@@ -287,7 +285,8 @@ button:focus-visible { outline:3px solid #3289b2; outline-offset:3px; }
 .story-passage { text-align:left; padding:18px 16px; margin:4px 0 16px; border:1px solid #a7803b; border-radius:12px; background:linear-gradient(135deg,#fff7e6,#f2dfb6); box-shadow:0 4px 12px #50371920; }
 .story-passage h3 { margin:0 0 10px; color:#73552b; font:700 .72rem "Trebuchet MS",sans-serif; letter-spacing:.05em; text-transform:uppercase; }
 .story-passage p { margin:0; font:1.17rem/1.6 Georgia,serif; color:#302719; }
-.story-journal { margin:14px 0; text-align:left; font-weight:400; color:#45371f; }
+.story-journal { margin:14px 0; text-align:left; }
+.story-journal:not(button) { font-weight:400; color:#45371f; }
 .story-journal summary { cursor:pointer; padding:10px 0; font-weight:700; min-height:44px; }
 .story-journal ol { max-height:280px; overflow:auto; padding-left:25px; background:#fff4dfe6; border-radius:8px; }
 .story-journal li { margin:12px 10px 12px 0; line-height:1.55; }

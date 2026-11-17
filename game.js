@@ -59,6 +59,10 @@ function renderCampaign(){
   $('realm-name').textContent=currentWord()&&realm.name.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'Realm '+(realmIndex+1):realm.name;$('realm-progress').textContent='Realm '+(realmIndex+1)+' / 12 · '+Math.min(93,position-realmIndex*93)+' / 93';
   $('realm-objective').textContent=currentWord()&&realm.goal.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'Continue your journey':realm.goal;
   const art=document.querySelector('.quest-map-art'),map=REALM_MAPS[realmIndex];
+  const challenge=document.querySelector('.challenge');
+  challenge.dataset.realm=map.id;
+  challenge.style.setProperty('--challenge-x',(realmIndex%4)*100/3+'%');
+  challenge.style.setProperty('--challenge-y',Math.floor(realmIndex/4)*50+'%');
   art.dataset.map=map.id;
   art.style.setProperty('--realm-map','url("assets/'+map.id+'-map.webp")');
   const safeMapLabel=(label,fallback)=>currentWord()&&label.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?fallback:label;

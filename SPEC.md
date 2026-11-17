@@ -68,7 +68,7 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 
 ## Storybook visual design
 - Generated map, woodland ruins, golden library, and moonlit observatory share a four-tile environment atlas. Source PNG is preserved in assets/source; runtime uses compressed WebP.
-- Each trial has a distinct illustrated backdrop with a quiet parchment reading area. All text, answer controls, counters, and map progress remain live HTML.
+- Each realm has a distinct scenic backdrop from the twelve-realm atlas, shared across all three trial types, with a quiet parchment reading area. Realm-boundary victories keep the outgoing background until Continue story. All text, answer controls, counters, and map progress remain live HTML.
 - Gold star and ruby heart counters lead the HUD. Mastery and streak remain secondary statistics.
 - Phone layout places a compact map above one active trial. Explore map expands the map and victory vault; short phone screens collapse map artwork by default. Desktop uses two columns.
 - Voice audio sits above the answer and in-game keyboard. Visible focus styles and at least 44px-high keyboard keys support interaction; reduced-motion settings disable decorative animation.
@@ -92,10 +92,13 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Eight live markers correspond to the eight authored scenes: gate, thorn wagon, stump shelter, workshop, mill courtyard, crossroads, village bell, river landing. Their coordinates were placed against the generated artwork, not reused from the roster layout.
 - Markers advance with narrative scenes, not with the active-word cursor. They can be tapped for location/status but do not skip story or select words. Previous stops receive a completion mark.
 - The map remains square at every viewport size so marker-to-landmark registration is preserved. Realm-boundary victories keep the outgoing map until Continue story.
-- All twelve realms now use the geographic map treatment: standalone square artwork, eight registered landmarks, and no generic dotted overlay. `realm-maps.js` owns asset IDs and normalized marker coordinates; authored `sceneIndex` owns progress. Clicking a marker only updates its caption; it never skips story progression or changes the spelling roster. The original atlases remain archived for provenance and trial backgrounds, not active realm maps.
+- All twelve realms now use the geographic map treatment: standalone square artwork, eight registered landmarks, and no generic dotted overlay. `realm-maps.js` owns asset IDs and normalized marker coordinates; authored `sceneIndex` owns progress. Clicking a marker only updates its caption; it never skips story progression or changes the spelling roster. The original atlases remain archived for provenance and realm-specific challenge backgrounds, not active realm maps.
 
 ## Realm map completion
 - Realm maps are individually generated, with setting-specific routes: archive walkways, city streets, desert trails, forest bridges, volcanic evacuation roads, sky-island crossings, coastal quays, observatory galleries, coalition roads, library corridors, and citadel rooms.
 - Original PNGs and generation specifications are preserved under `assets/source/`; runtime WebPs are served from `assets/`.
 - All map artwork retains its square aspect ratio on phones and desktops, including expanded mode. Realm-boundary victories retain the outgoing map until Continue story.
 - Map captions and accessibility labels respect the current spelling target concealment rule.
+
+## Button readability
+- Journal prose styling excludes buttons, so Adventure journal retains the shared cream-on-teal button palette and bold weight, including in victory feedback.
