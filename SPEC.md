@@ -19,7 +19,7 @@ SpellQuest is a fifth-grade spelling mastery game. Success in increasingly diffi
 Each word advances through exactly three trials:
 
 1. **Rune Path:** The complete word is visible. The player chooses all letter runes in order.
-2. **Fading Script:** The word remains visible in incomplete form, and the player supplies more than half of its letters.
+2. **Fading Script:** The word remains visible in incomplete form, and the player supplies more than half of its letters using selectable blank buttons and the shared in-game keyboard, never native text inputs.
 3. **Voice Trial:** The written word, hints, and letter pool are removed. The player hears the word and enters it completely from memory using a full in-game keyboard.
 
 A word is mastered only after a correct Voice Trial. Incorrect answers never advance the word. Hints are available only in the first two trials. Replaying the spoken prompt is allowed and does not reduce mastery.

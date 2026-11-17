@@ -33,7 +33,8 @@ function type(dom,value){
   }
 }
 function wordBank(){const dom=new JSDOM('<!doctype html>',{runScripts:'outside-only'});dom.window.eval(fs.readFileSync(path.join(root,'words.js'),'utf8'));return dom.window.WORD_BANK;}
-function fillFading(dom,word,wrong=false){for(const input of dom.window.document.querySelectorAll('.missing-word input')){const expected=word[Number(input.dataset.position)];input.value=wrong?(expected.toLocaleLowerCase()==='z'?'x':'z'):expected;input.dispatchEvent(new dom.window.Event('input'));}}
+function setFading(dom,slot,character){slot.click();const keys=[...dom.window.document.querySelectorAll('.voice-key')];let key=keys.find(k=>k.textContent===character);if(!key){keys.find(k=>k.textContent==='Shift').click();key=keys.find(k=>k.textContent===character);}assert.ok(key);key.click();}
+function fillFading(dom,word,wrong=false){for(const slot of dom.window.document.querySelectorAll('.fading-slot')){const expected=word[Number(slot.dataset.position)];setFading(dom,slot,wrong?(expected.toLocaleLowerCase()==='z'?'x':'z'):expected);}}
 function visibleChallengeContent(dom){const game=dom.window.document.getElementById('game').cloneNode(true);game.querySelectorAll('.hidden').forEach(node=>node.remove());const attributes=[...game.querySelectorAll('*')].flatMap(node=>['aria-label','title','placeholder'].map(name=>node.getAttribute(name)||''));return `${game.textContent} ${attributes.join(' ')}`.replace(/\s+/g,' ').toLocaleLowerCase();}
 function assertTargetHidden(dom,word){assert.ok(!visibleChallengeContent(dom).includes(word.toLocaleLowerCase()),`${word} leaked into visible challenge UI`);}
 
@@ -114,18 +115,18 @@ test('a correct Rune Path advances the roster and fully renders the next challen
 test('a word returning for its second trial renders the harder Fading Script',()=>{
   const {dom,errors}=createGame(baseSave({progress:{Machine:1}}));
   assert.equal(dom.window.document.getElementById('challenge-type').textContent,'Fading Script');
-  assert.ok(dom.window.document.querySelectorAll('.missing-word input').length>=2);
+  assert.ok(dom.window.document.querySelectorAll('.fading-slot').length>=2);
   assertTargetHidden(dom,'Machine');
-  const input=dom.window.document.querySelector('.missing-word input'),expected='Machine'[Number(input.dataset.position)];
-  input.value=expected.toLocaleLowerCase()==='z'?'x':'z';input.dispatchEvent(new dom.window.Event('input'));
+  const input=dom.window.document.querySelector('.fading-slot'),expected='Machine'[Number(input.dataset.position)];
+  setFading(dom,input,expected.toLocaleLowerCase()==='z'?'x':'z');
   assert.ok(!input.classList.contains('wrong'));
   dom.window.document.getElementById('check-btn').click();
   assert.ok(input.classList.contains('wrong'));
-  input.value=expected.toLocaleLowerCase()==='x'?'z':'x';input.dispatchEvent(new dom.window.Event('input'));
+  setFading(dom,input,expected.toLocaleLowerCase()==='x'?'z':'x');
   assert.ok(!input.classList.contains('wrong'));
   dom.window.document.getElementById('check-btn').click();
   assert.ok(input.classList.contains('wrong'));
-  input.value=expected;input.dispatchEvent(new dom.window.Event('input'));
+  setFading(dom,input,expected);
   assert.ok(!input.classList.contains('wrong'));
   assert.deepEqual(errors,[]);dom.window.close();
 });
@@ -320,4 +321,14 @@ test('new campaign clears story and completed chapters keep it',()=>{
   final.dom.window.document.getElementById('replay-btn').click();
   assert.equal(JSON.parse(final.dom.window.localStorage.getItem('spellQuestMasteryV1')).storyVictories,30);
   final.dom.window.close();
+});
+test('Fading Script has no native editable fields and supports selection, backspace and clear',()=>{
+  const {dom}=createGame(baseSave({progress:{Machine:1}})),doc=dom.window.document;
+  assert.equal(doc.querySelectorAll('#answer-area input,#answer-area textarea,#answer-area [contenteditable]').length,0);
+  const slots=[...doc.querySelectorAll('.fading-slot')];
+  setFading(dom,slots[0],'z');assert.equal(slots[0].textContent,'z');assert.ok(slots[1].classList.contains('selected'));
+  doc.querySelector('[aria-label="Backspace"]').click();assert.equal(slots[0].textContent,'');
+  setFading(dom,slots[0],'z');[...doc.querySelectorAll('.voice-key')].find(b=>b.textContent==='Clear').click();
+  assert.ok(slots.every(s=>!s.textContent));doc.getElementById('check-btn').click();assert.equal(doc.getElementById('hearts').textContent,'5 / 10');
+  dom.window.close();
 });

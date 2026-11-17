@@ -79,35 +79,46 @@ function renderRunePath(word){
   runes.forEach(rune=>{const button=document.createElement('button');button.className='letter';button.textContent=rune.character;button.dataset.id=rune.position;button.onclick=()=>{if(state.locked)return;const slot=[...document.querySelectorAll('.slot')].find(candidate=>!candidate.textContent);if(!slot)return;slot.textContent=rune.character;slot.classList.add('filled');slot.classList.remove('wrong');slot.dataset.source=rune.position;button.classList.add('used');button.disabled=true;state.answer=assembledAnswer(word);};$('bank').appendChild(button);});
   document.querySelectorAll('.slot').forEach(slot=>slot.onclick=()=>{if(!slot.textContent||state.locked)return;const button=[...document.querySelectorAll('.letter')].find(candidate=>candidate.dataset.id===slot.dataset.source);button.classList.remove('used');button.disabled=false;slot.textContent='';slot.classList.remove('filled','wrong');state.answer=assembledAnswer(word);});
 }
+let fadingEntry=null;
 function renderFadingScript(word){
-  const eligible=[...word].map((character,position)=>({character,position})).filter(item=>isLetter(item.character));const count=Math.max(2,Math.ceil(eligible.length*.55));const missing=shuffle(eligible).slice(0,count).map(item=>item.position).sort((a,b)=>a-b);
-  $('answer-area').innerHTML=`<div class="missing-word">${[...word].map((character,position)=>missing.includes(position)?`<input maxlength="1" autocomplete="off" data-position="${position}" aria-label="Missing letter ${missing.indexOf(position)+1}">`:`<span>${character===' '?'&nbsp;':escapeHtml(character)}</span>`).join('')}</div>`;
-  const inputs=[...document.querySelectorAll('.missing-word input')];inputs.forEach((input,index)=>input.addEventListener('input',()=>{input.value=input.value.replace(/[^A-Za-zÀ-ÿ]/g,'').slice(-1);input.classList.remove('wrong');if(input.value&&inputs[index+1])inputs[index+1].focus();const values=new Map(inputs.map(field=>[Number(field.dataset.position),field.value]));state.answer=[...word].map((character,position)=>values.has(position)?values.get(position):character).join('');}));inputs[0]?.focus();
+  const eligible=[...word].map((character,position)=>({character,position})).filter(item=>isLetter(item.character));
+  const missing=shuffle(eligible).slice(0,Math.max(2,Math.ceil(eligible.length*.55))).map(item=>item.position).sort((a,b)=>a-b);
+  $('answer-area').innerHTML='<div class="missing-word"></div><p class="keyboard-help">Choose a blank, then use the keys below.</p><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div>';
+  const line=document.querySelector('.missing-word'),slots=[];
+  for(const [position,character] of [...word].entries()){
+    const field=document.createElement(missing.includes(position)?'button':'span');
+    if(missing.includes(position)){field.type='button';field.className='fading-slot';field.dataset.position=position;field.setAttribute('aria-label','Missing letter '+(slots.length+1));slots.push(field);}
+    else field.textContent=character===' '?' ':character;
+    line.append(field);
+  }
+  let selected=0;
+  function select(index){selected=Math.max(0,Math.min(slots.length-1,index));slots.forEach((slot,i)=>{slot.classList.toggle('selected',i===selected);slot.setAttribute('aria-pressed',String(i===selected));});}
+  function update(){const values=new Map(slots.map(slot=>[Number(slot.dataset.position),slot.textContent]));state.answer=slots.some(slot=>slot.textContent)?[...word].map((c,i)=>values.has(i)?values.get(i):c).join(''):'';}
+  function put(character){if(state.locked||!isLetter(character))return;const slot=slots[selected];slot.textContent=character;slot.classList.remove('wrong');update();select(selected+1);}
+  slots.forEach((slot,i)=>slot.onclick=()=>{if(!state.locked)select(i);});
+  fadingEntry={hint(){const index=slots.findIndex(slot=>!slot.textContent);if(index>=0){select(index);put(word[Number(slots[index].dataset.position)]);}}};
+  select(0);
+  renderAnswerKeyboard({letter:put,backspace(){if(!slots[selected].textContent&&selected>0)select(selected-1);slots[selected].textContent='';slots[selected].classList.remove('wrong');update();},clear(){for(const slot of slots){slot.textContent='';slot.classList.remove('wrong');}select(0);update();}},false);
 }
 function renderVoiceTrial(){
-  $('answer-area').innerHTML='<div class="voice-entry"><div class="sound-rings" aria-hidden="true"><i></i><i></i><i></i></div><p id="answer-label">Use the keyboard below to write what you hear</p><div id="spell-input" class="spell-input" role="status" aria-labelledby="answer-label" aria-live="polite"></div><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div></div>';
-  let shifted=false;
-  const keyboard=$('voice-keyboard'),letterButtons=[];
+  $('answer-area').innerHTML='<div class="voice-entry"><p id="answer-label">Use the keyboard below to write what you hear</p><div id="spell-input" class="spell-input" role="status" aria-labelledby="answer-label" aria-live="polite"></div><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div></div>';
   function update(){ $('spell-input').textContent=state.answer; }
+  renderAnswerKeyboard({letter(c){state.answer+=c;update();},backspace(){state.answer=[...state.answer].slice(0,-1).join('');update();},clear(){state.answer='';update();}},true);
+}
+function renderAnswerKeyboard(actions,punctuation){
+  let shifted=false;const keyboard=$('voice-keyboard'),letterButtons=[];
   function addKey(row,label,action){
     const button=document.createElement('button');button.type='button';button.className='voice-key';button.textContent=label;
     button.onclick=()=>{if(!state.locked)action();};row.append(button);return button;
   }
   for(const letters of ['qwertyuiop','asdfghjkl','zxcvbnm','áéíóúüñ']){
     const row=document.createElement('div');row.className='keyboard-row';keyboard.append(row);
-    for(const letter of letters){
-      const button=addKey(row,letter,()=>{state.answer+=shifted?letter.toLocaleUpperCase():letter;update();});
-      button.dataset.character=letter;letterButtons.push(button);
-    }
+    for(const letter of letters){const button=addKey(row,letter,()=>actions.letter(shifted?letter.toLocaleUpperCase():letter));button.dataset.character=letter;letterButtons.push(button);}
   }
   const row=document.createElement('div');row.className='keyboard-row keyboard-actions';keyboard.append(row);
-  const shift=addKey(row,'Shift',()=>{shifted=!shifted;shift.setAttribute('aria-pressed',String(shifted));for(const button of letterButtons)button.textContent=shifted?button.dataset.character.toLocaleUpperCase():button.dataset.character;});
-  shift.setAttribute('aria-pressed','false');
-  addKey(row,"'",()=>{state.answer+="'";update();}).setAttribute('aria-label','Apostrophe');
-  addKey(row,'-',()=>{state.answer+='-';update();}).setAttribute('aria-label','Hyphen');
-  addKey(row,'Space',()=>{state.answer+=' ';update();});
-  addKey(row,'⌫',()=>{state.answer=[...state.answer].slice(0,-1).join('');update();}).setAttribute('aria-label','Backspace');
-  addKey(row,'Clear',()=>{state.answer='';update();});
+  const shift=addKey(row,'Shift',()=>{shifted=!shifted;shift.setAttribute('aria-pressed',String(shifted));for(const button of letterButtons)button.textContent=shifted?button.dataset.character.toLocaleUpperCase():button.dataset.character;});shift.setAttribute('aria-pressed','false');
+  if(punctuation){addKey(row,"'",()=>actions.letter("'")).setAttribute('aria-label','Apostrophe');addKey(row,'-',()=>actions.letter('-')).setAttribute('aria-label','Hyphen');addKey(row,'Space',()=>actions.letter(' '));}
+  addKey(row,'⌫',actions.backspace).setAttribute('aria-label','Backspace');addKey(row,'Clear',actions.clear);
 }
 function speakWord(){
   if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){$('feedback').textContent='Audio is unavailable in this browser. Ask an adult to read the word aloud.';$('feedback').className='feedback try';return;}
@@ -118,11 +129,11 @@ function costText(spent){return spent?' −1 heart.':' No hearts left—keep try
 function hint(){
   if(state.locked||state.hintUsed||currentTier()===2||state.hearts===0)return;const word=currentWord();state.visitFailed=true;state.hintUsed=true;const spent=spendHeart();
   if(currentTier()===0){const first=[...document.querySelectorAll('.slot')].find(slot=>!slot.textContent);$('feedback').textContent=(first?`The next rune is “${word[Number(first.dataset.position)]}”.`:'All runes are placed.')+costText(spent);}
-  else{const first=[...document.querySelectorAll('.missing-word input')].find(input=>!input.value);if(first){first.value=word[Number(first.dataset.position)];first.dispatchEvent(new Event('input'));}$('feedback').textContent='One faded rune has returned.'+costText(spent);}
+  else{fadingEntry.hint();$('feedback').textContent='One faded rune has returned.'+costText(spent);}
   $('feedback').className='feedback try';
 }
 function markSubmittedLetters(word){
-  document.querySelectorAll('.slot, .missing-word input').forEach(field=>{const value=field.tagName==='INPUT'?field.value:field.textContent;field.classList.toggle('wrong',Boolean(value)&&!answerMatches(value,word[Number(field.dataset.position)]));});
+  document.querySelectorAll('.slot, .fading-slot').forEach(field=>{const value=field.tagName==='INPUT'?field.value:field.textContent;field.classList.toggle('wrong',Boolean(value)&&!answerMatches(value,word[Number(field.dataset.position)]));});
 }
 function check(){
   if(state.locked)return;const word=currentWord(),tier=currentTier();state.attempts[word]=(state.attempts[word]||0)+1;
@@ -167,7 +178,7 @@ function continueCampaign(){
 
 if(loadedSave&&loadedSave.mastered.length<WORD_BANK.length)$('continue-btn').classList.remove('hidden');
 $('start-btn').onclick=()=>begin(false);$('continue-btn').onclick=()=>begin(true);$('hint-btn').onclick=hint;$('audio-btn').onclick=speakWord;$('check-btn').onclick=check;$('next-btn').onclick=nextChallenge;$('replay-btn').onclick=continueCampaign;
-document.addEventListener('keydown',event=>{if(event.target.closest?.('#voice-keyboard'))return;if(event.key==='Enter'&&!$('game').classList.contains('hidden')){if(!$('next-btn').classList.contains('hidden'))nextChallenge();else check();}});
+document.addEventListener('keydown',event=>{if(event.target.closest?.('#voice-keyboard, .fading-slot'))return;if(event.key==='Enter'&&!$('game').classList.contains('hidden')){if(!$('next-btn').classList.contains('hidden'))nextChallenge();else check();}});
 
 $('map-toggle').onclick=()=>{
   const map=document.querySelector('.map'),expanded=map.classList.toggle('expanded');
