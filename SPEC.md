@@ -80,7 +80,7 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Canonical progression derives from three advances per mastered word plus partial tiers of active words; it does not trust the old raw-completion story counter.
 - With the 372-word roster, every advancement unlocks exactly one beat. Frozen rosters of other lengths are proportionally mapped to the same authored campaign, rather than looping its content.
 - Every beat has a stable ID, scene, previous-beat prerequisite and explicit milestone effects. Party/equipment/map state derives from unlocked canonical progress.
-- World-map tiles move from unreached to current to restored. The current realm has distinct generated artwork; earned companions and narrative equipment remain listed.
+- The current realm has distinct generated map artwork; earned companions and narrative equipment remain listed. The twelve-realm thumbnail grid is omitted to keep the expanded map compact; unlocked realm histories remain available through the adventure journal.
 - Realm names and reward labels that contain the current target are suppressed on the answer surface. The journal is modal, pauses answer interaction, and removes its prose from the DOM on close.
 - The full unlocked journal contains scene text and realm summaries; it never reveals future plot.
 - Version-1 saves retain mastery, partial tiers, stars and hearts. Canonical placement derives from earned advancements; earlier new-story passages are explicitly marked as a migration recap, not previously played events.

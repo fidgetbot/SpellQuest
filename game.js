@@ -61,8 +61,6 @@ function renderCampaign(){
   $('realm-name').textContent=currentWord()&&realm.name.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'Realm '+(realmIndex+1):realm.name;$('realm-progress').textContent='Realm '+(realmIndex+1)+' / 12 · '+(position===1116?93:position%93)+' / 93';
   $('realm-objective').textContent=currentWord()&&realm.goal.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'Continue your journey':realm.goal;
   const art=document.querySelector('.quest-map-art');art.style.setProperty('--realm-x',(realmIndex%4)*100/3+'%');art.style.setProperty('--realm-y',Math.floor(realmIndex/4)*50+'%');
-  $('world-realms').innerHTML=STORY_REALMS.map((r,i)=>'<button type="button" class="realm-tile '+(i<realmIndex?'restored':i===realmIndex?'current':'unreached')+'" data-realm="'+i+'" aria-label="Realm '+(i+1)+' '+(i<realmIndex?'restored':i===realmIndex?'current':'unreached')+'"><span class="realm-thumb" style="--realm-x:'+(i%4)*100/3+'%;--realm-y:'+Math.floor(i/4)*50+'%"></span><span>'+(i+1)+' · '+(i<realmIndex?'Restored':i===realmIndex?'Current':'Ahead')+'</span></button>').join('');
-  document.querySelectorAll('.realm-tile').forEach(button=>button.onclick=()=>showJournal(Number(button.dataset.realm)));
   const rewards=unlockedRewards(position);$('party-rewards').textContent=rewards.length?rewards.map(label=>currentWord()&&label.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'◆':label).join(' · '):'Your journey begins';
 
   if(state.active.length){$('location-name').textContent=placeFor(currentWord());$('quest-note').textContent=`Trial ${currentTier()+1} of 3 · ${TRIALS[currentTier()].name}`;}
