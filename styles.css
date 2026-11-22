@@ -293,7 +293,6 @@ button:focus-visible { outline:3px solid #3289b2; outline-offset:3px; }
 
 .fading-slot { vertical-align:middle; padding:0; min-height:44px; min-width:36px; margin:3px; }
 .fading-slot.selected { outline:3px solid #11636a; outline-offset:2px; }
-.keyboard-help { text-align:center; font-size:.8rem; color:#51442d; }
 #answer-area > .voice-keyboard { margin:auto; }
 .realm-overview { margin:10px 0; color:#fff0c9; }
 .realm-overview b,.realm-overview small { display:block; }

@@ -102,3 +102,7 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 
 ## Button readability
 - Journal prose styling excludes buttons, so Adventure journal retains the shared cream-on-teal button palette and bold weight, including in victory feedback.
+
+## Concise challenge interface
+- Trial headings and word definitions remain; redundant how-to sentences and keyboard helper captions are omitted across all three trial types.
+- Voice answer output retains an accessible “Your answer” label without a visible instruction paragraph. Controls and gameplay are unchanged.

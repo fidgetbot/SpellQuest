@@ -94,7 +94,7 @@ function loadChallenge(){
   $('feedback').textContent='';$('feedback').className='feedback';$('next-btn').classList.add('hidden');$('check-btn').classList.remove('hidden');
   $('hint-btn').classList.toggle('hidden',tier===2);$('hint-btn').disabled=state.hearts===0;$('audio-btn').classList.toggle('hidden',tier!==2);$('audio-btn').disabled=false;
   $('challenge-type').textContent=trial.name;$('round-count').textContent=`${state.mastered.length} victories won · ${state.queue.length} queued`;
-  $('prompt-area').innerHTML=tier===2?'<p class="trial-kicker">Final mastery trial</p><h2>Listen and write</h2><p>No hints. No letter pool. Replay the spoken prompt whenever you need.</p>':`<p class="trial-kicker">Trial ${tier+1} of 3</p><h2>${tier===0?'Rebuild the enchanted word':'Restore the faded word'}</h2><p>${tier===0?'Choose every rune in order.':'More of the spelling has faded. Restore it.'}</p>`;
+  $('prompt-area').innerHTML=tier===2?'<p class="trial-kicker">Final mastery trial</p><h2>Listen and write</h2>':`<p class="trial-kicker">Trial ${tier+1} of 3</p><h2>${tier===0?'Rebuild the enchanted word':'Restore the faded word'}</h2>`;
   const definition=document.createElement('p');definition.className='word-definition';definition.textContent=WORD_DEFINITIONS[word]||'Listen carefully and recall this word from your earlier lessons.';$('prompt-area').querySelector('h2').after(definition);
   if(tier===0)renderRunePath(word);else if(tier===1)renderFadingScript(word);else renderVoiceTrial();
 }
@@ -111,7 +111,7 @@ let fadingEntry=null;
 function renderFadingScript(word){
   const eligible=[...word].map((character,position)=>({character,position})).filter(item=>isLetter(item.character));
   const missing=shuffle(eligible).slice(0,Math.max(2,Math.ceil(eligible.length*.55))).map(item=>item.position).sort((a,b)=>a-b);
-  $('answer-area').innerHTML='<div class="missing-word"></div><p class="keyboard-help">Choose a blank, then use the keys below.</p><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div>';
+  $('answer-area').innerHTML='<div class="missing-word"></div><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div>';
   const line=document.querySelector('.missing-word'),slots=[];
   for(const [position,character] of [...word].entries()){
     const field=document.createElement(missing.includes(position)?'button':'span');
@@ -129,7 +129,7 @@ function renderFadingScript(word){
   renderAnswerKeyboard({letter:put,backspace(){if(!slots[selected].textContent&&selected>0)select(selected-1);slots[selected].textContent='';slots[selected].classList.remove('wrong');update();},clear(){for(const slot of slots){slot.textContent='';slot.classList.remove('wrong');}select(0);update();}},false);
 }
 function renderVoiceTrial(){
-  $('answer-area').innerHTML='<div class="voice-entry"><p id="answer-label">Use the keyboard below to write what you hear</p><div id="spell-input" class="spell-input" role="status" aria-labelledby="answer-label" aria-live="polite"></div><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div></div>';
+  $('answer-area').innerHTML='<div class="voice-entry"><div id="spell-input" class="spell-input" role="status" aria-label="Your answer" aria-live="polite"></div><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div></div>';
   function update(){ $('spell-input').textContent=state.answer; }
   renderAnswerKeyboard({letter(c){state.answer+=c;update();},backspace(){state.answer=[...state.answer].slice(0,-1).join('');update();},clear(){state.answer='';update();}},true);
 }
