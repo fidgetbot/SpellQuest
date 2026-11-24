@@ -33,19 +33,21 @@ function reconcileSave(saved){
   return {...freshState(),...saved,campaignWords:[...roster],narrativeVersion:NARRATIVE_VERSION,pendingVictory:saved.narrativeVersion===NARRATIVE_VERSION?saved.pendingVictory||null:null,interlude:saved.narrativeVersion===NARRATIVE_VERSION&&Boolean(saved.interlude),migrationRecap:saved.narrativeVersion!==NARRATIVE_VERSION||Boolean(saved.migrationRecap),hearts:Number.isInteger(saved.hearts)?Math.max(0,Math.min(MAX_HEARTS,saved.hearts)):STARTING_HEARTS,storyVictories:Number.isSafeInteger(saved.storyVictories)&&saved.storyVictories>=0?saved.storyVictories:0,storyJournal:Array.isArray(saved.storyJournal)?saved.storyJournal.filter(entry=>entry&&typeof entry.heading==='string'&&typeof entry.text==='string').slice(-60):[],mastered,active,queue,cursor:active.length?Math.min(saved.cursor||0,active.length-1):0,chapterStart,chapterTarget,progress:saved.progress||{},attempts:saved.attempts||{}};
 }
 function readSave(){
+  if(window.QUEST_CLOUD)return null;
   try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(!saved||!Array.isArray(saved.active))return null;
     const result=reconcileSave(saved);result.storyVictories=storyPosition(result);
     result.recapThrough=saved.narrativeVersion!==NARRATIVE_VERSION?result.storyVictories:(saved.recapThrough||0);return result;
   }catch{return null;}
 }
 let loadedSave=readSave();
-function save(){localStorage.setItem(SAVE_KEY,JSON.stringify({active:state.active,queue:state.queue,mastered:state.mastered,progress:state.progress,cursor:state.cursor,chapterStart:state.chapterStart,chapterTarget:state.chapterTarget,stars:state.stars,streak:state.streak,hearts:state.hearts,campaignWords:state.campaignWords,narrativeVersion:state.narrativeVersion,pendingVictory:state.pendingVictory,interlude:state.interlude,migrationRecap:state.migrationRecap,recapThrough:state.recapThrough,storyVictories:state.storyVictories,storyJournal:state.storyJournal,attempts:state.attempts}));}
+function save(){if(window.QUEST_CLOUD)return;localStorage.setItem(SAVE_KEY,JSON.stringify({active:state.active,queue:state.queue,mastered:state.mastered,progress:state.progress,cursor:state.cursor,chapterStart:state.chapterStart,chapterTarget:state.chapterTarget,stars:state.stars,streak:state.streak,hearts:state.hearts,campaignWords:state.campaignWords,narrativeVersion:state.narrativeVersion,pendingVictory:state.pendingVictory,interlude:state.interlude,migrationRecap:state.migrationRecap,recapThrough:state.recapThrough,storyVictories:state.storyVictories,storyJournal:state.storyJournal,attempts:state.attempts}));}
 function currentWord(){return state.active[state.cursor];}
 function currentTier(){return state.progress[currentWord()]||0;}
 function normalize(value,caseSensitive=false){const cleaned=value.replace(/[’‘]/g,"'").replace(/\s+/g,' ').trim();return caseSensitive?cleaned:cleaned.toLocaleLowerCase();}
 function answerMatches(answer,word){return normalize(answer,word==='Mom'||word==='mom')===normalize(word,word==='Mom'||word==='mom');}
 
 function begin(resume=false){
+  if(window.Cloud)return Cloud.begin();
   Object.assign(state,resume&&loadedSave?loadedSave:freshState(),{answer:'',locked:false,lastMastered:false,visitFailed:false,hintUsed:false});
   $('intro').classList.add('hidden');$('ending').classList.add('hidden');$('game').classList.remove('hidden');
   renderCampaign();if(state.interlude){finishChapter();return;}if(state.pendingVictory){resumeVictory();return;}loadChallenge();
@@ -97,20 +99,21 @@ function loadChallenge(){
   $('prompt-area').innerHTML=tier===2?'<p class="trial-kicker">Final mastery trial</p><h2>Listen and write</h2>':`<p class="trial-kicker">Trial ${tier+1} of 3</p><h2>${tier===0?'Rebuild the enchanted word':'Restore the faded word'}</h2>`;
   const definition=document.createElement('p');definition.className='word-definition';definition.textContent=WORD_DEFINITIONS[word]||'Listen carefully and recall this word from your earlier lessons.';$('prompt-area').querySelector('h2').after(definition);
   if(tier===0)renderRunePath(word);else if(tier===1)renderFadingScript(word);else renderVoiceTrial();
+  if(window.Cloud)Cloud.restoreVisit();
 }
 function wordSlots(word,missingPositions){return [...word].map((character,position)=>missingPositions.has(position)?`<button class="slot" data-position="${position}" aria-label="Empty rune ${position+1}"></button>`:`<span class="fixed-slot">${character===' '?'&nbsp;':escapeHtml(character)}</span>`).join('');}
 function assembledAnswer(word){const slots=new Map([...document.querySelectorAll('.slot')].map(slot=>[Number(slot.dataset.position),slot.textContent]));return [...word].map((character,position)=>slots.has(position)?slots.get(position):character).join('');}
 function renderRunePath(word){
   const letterPositions=[...word].map((character,position)=>({character,position})).filter(item=>isLetter(item.character));
   $('answer-area').innerHTML=`<div class="slots">${wordSlots(word,new Set(letterPositions.map(item=>item.position)))}</div><div class="letter-bank" id="bank"></div>`;
-  let runes=shuffle(letterPositions);const ordered=letterPositions.map(rune=>rune.character).join('');if(runes.length>1&&runes.map(rune=>rune.character).join('')===ordered)runes=[...runes.slice(1),runes[0]];
+  let runes=window.QUEST_CLOUD&&state.visit?state.visit.order.map(position=>({position,character:word[position]})):shuffle(letterPositions);const ordered=letterPositions.map(rune=>rune.character).join('');if(runes.length>1&&runes.map(rune=>rune.character).join('')===ordered)runes=[...runes.slice(1),runes[0]];
   runes.forEach(rune=>{const button=document.createElement('button');button.className='letter';button.textContent=rune.character;button.dataset.id=rune.position;button.onclick=()=>{if(state.locked)return;const slot=[...document.querySelectorAll('.slot')].find(candidate=>!candidate.textContent);if(!slot)return;slot.textContent=rune.character;slot.classList.add('filled');slot.classList.remove('wrong');slot.dataset.source=rune.position;button.classList.add('used');button.disabled=true;state.answer=assembledAnswer(word);};$('bank').appendChild(button);});
   document.querySelectorAll('.slot').forEach(slot=>slot.onclick=()=>{if(!slot.textContent||state.locked)return;const button=[...document.querySelectorAll('.letter')].find(candidate=>candidate.dataset.id===slot.dataset.source);button.classList.remove('used');button.disabled=false;slot.textContent='';slot.classList.remove('filled','wrong');state.answer=assembledAnswer(word);});
 }
 let fadingEntry=null;
 function renderFadingScript(word){
   const eligible=[...word].map((character,position)=>({character,position})).filter(item=>isLetter(item.character));
-  const missing=shuffle(eligible).slice(0,Math.max(2,Math.ceil(eligible.length*.55))).map(item=>item.position).sort((a,b)=>a-b);
+  const missing=window.QUEST_CLOUD&&state.visit?state.visit.missing:shuffle(eligible).slice(0,Math.max(2,Math.ceil(eligible.length*.55))).map(item=>item.position).sort((a,b)=>a-b);
   $('answer-area').innerHTML='<div class="missing-word"></div><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div>';
   const line=document.querySelector('.missing-word'),slots=[];
   for(const [position,character] of [...word].entries()){
@@ -155,6 +158,7 @@ function speakWord(){
 function spendHeart(){const before=state.hearts;state.hearts=Math.max(0,state.hearts-1);save();renderCampaign();return before-state.hearts;}
 function costText(spent){return spent?' −1 heart.':' No hearts left—keep trying to earn one back.';}
 function hint(){
+  if(window.Cloud)return Cloud.action('hint');
   if(state.locked||state.hintUsed||currentTier()===2||state.hearts===0)return;const word=currentWord();state.visitFailed=true;state.hintUsed=true;const spent=spendHeart();
   if(currentTier()===0){const first=[...document.querySelectorAll('.slot')].find(slot=>!slot.textContent);$('feedback').textContent=(first?`The next rune is “${word[Number(first.dataset.position)]}”.`:'All runes are placed.')+costText(spent);}
   else{fadingEntry.hint();$('feedback').textContent='One faded rune has returned.'+costText(spent);}
@@ -164,6 +168,7 @@ function markSubmittedLetters(word){
   document.querySelectorAll('.slot, .fading-slot').forEach(field=>{const value=field.tagName==='INPUT'?field.value:field.textContent;field.classList.toggle('wrong',Boolean(value)&&!answerMatches(value,word[Number(field.dataset.position)]));});
 }
 function check(){
+  if(window.Cloud)return Cloud.action('submit');
   if(state.locked)return;const before=storyPosition(state);const word=currentWord(),tier=currentTier();state.attempts[word]=(state.attempts[word]||0)+1;
   markSubmittedLetters(word);
   if(!answerMatches(state.answer,word)){state.streak=0;if(state.answer)state.visitFailed=true;const spent=state.answer?spendHeart():0;const retry=tier===2?'Not yet. Listen once more and try again.':'Not yet. Study the red letters and try once more.';$('feedback').textContent=state.answer?retry+costText(spent):'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
@@ -195,6 +200,7 @@ function resumeVictory(){
   appendStory(state.pendingVictory.story);
 }
 function nextChallenge(){
+  if(window.Cloud)return Cloud.action('continue');
   if(!state.locked)return;
   const boundary=state.pendingVictory?.boundary;state.lastMastered=state.pendingVictory?.lastMastered||false;state.locked=false;state.pendingVictory=null;
   if(state.active.length)state.cursor=state.lastMastered?state.cursor%state.active.length:(state.cursor+1)%state.active.length;
@@ -207,9 +213,10 @@ function finishChapter(){
   $('ending-title').textContent=complete?'A kingdom free to change':realm.name+' restored';
   $('ending-copy').textContent=realm.summary+(complete?' Pip rests beside you as Tavi plans the journey home, and Cinder rises into a sky belonging to everyone.':' Your allies remain to protect what changed; the road ahead leads to '+STORY_REALMS[Math.min(11,realm.id+1)].name+'.');
   $('word-report').innerHTML=state.mastered.slice(-10).map(word=>jewelMarkup(word,true)).join('');
-  $('replay-btn').textContent=complete?'Start a new campaign':'Enter next realm';save();
+  $('replay-btn').textContent=complete?'Start a new campaign':'Enter next realm';if(window.QUEST_CLOUD&&complete){$('replay-btn').classList.add('hidden');}save();
 }
 function continueCampaign(){
+  if(window.Cloud)return Cloud.action('enter');
   if(state.mastered.length===state.campaignWords.length){localStorage.removeItem(SAVE_KEY);loadedSave=null;begin(false);return;}
   state.interlude=false;save();$('ending').classList.add('hidden');$('game').classList.remove('hidden');renderCampaign();loadChallenge();
 }

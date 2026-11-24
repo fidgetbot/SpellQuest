@@ -1,6 +1,6 @@
 # Word Quest: cloud progress and supervisor dashboard
 
-Status: implementation plan, not implemented or deployed.
+Status: initial cloud implementation deployed on 2026-11-24. See CLOUD-OPERATIONS.md for delivered scope, verification, operational limits and remaining parent-performed migration. This document preserves the original plan; the operations guide records differences (including in-app backup scheduling and no separate staging environment).
 Agreed design and read-only Railway preflight: 2026-11-24.
 
 ## 1. Scope and product decisions

@@ -1,0 +1,1 @@
+const db=require('../server/db');require('../server/backups').backup(db,true).then(name=>{console.log(name);return db.end();}).catch(e=>{console.error('Backup failed',e.name,e.code||'');process.exit(1);});

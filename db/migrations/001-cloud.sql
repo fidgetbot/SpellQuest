@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS players(id uuid PRIMARY KEY, nickname text NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS setup_tokens(hash text PRIMARY KEY, player_id uuid NOT NULL REFERENCES players(id), supervisor boolean NOT NULL DEFAULT false, expires_at timestamptz NOT NULL, redeemed_at timestamptz);
+CREATE TABLE IF NOT EXISTS browser_sessions(id uuid PRIMARY KEY, hash text UNIQUE NOT NULL, player_id uuid NOT NULL REFERENCES players(id), supervisor boolean NOT NULL DEFAULT false, label text NOT NULL DEFAULT 'Browser', expires_at timestamptz NOT NULL, revoked boolean NOT NULL DEFAULT false, last_seen timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS campaigns(id uuid PRIMARY KEY, player_id uuid UNIQUE NOT NULL REFERENCES players(id), state jsonb NOT NULL, revision integer NOT NULL DEFAULT 0, writer text, generation integer NOT NULL DEFAULT 0, lease_until timestamptz, import_digest text, imported_at timestamptz, updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS commands(campaign_id uuid NOT NULL REFERENCES campaigns(id), id uuid NOT NULL, payload_hash text NOT NULL, result jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(campaign_id,id));
+CREATE TABLE IF NOT EXISTS learning_events(id bigserial PRIMARY KEY, campaign_id uuid NOT NULL REFERENCES campaigns(id), command_id uuid NOT NULL, event_index integer NOT NULL, data jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(campaign_id,command_id,event_index));
+CREATE INDEX IF NOT EXISTS events_campaign_time ON learning_events(campaign_id,created_at);
+CREATE TABLE IF NOT EXISTS save_imports(campaign_id uuid NOT NULL REFERENCES campaigns(id), digest text NOT NULL, source jsonb NOT NULL, imported_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(campaign_id,digest));
+CREATE TABLE IF NOT EXISTS rate_limits(key text PRIMARY KEY, attempts integer NOT NULL, reset_at timestamptz NOT NULL);
+CREATE TABLE IF NOT EXISTS backup_runs(id uuid PRIMARY KEY, completed_at timestamptz NOT NULL DEFAULT now(), object_key text NOT NULL);

@@ -332,3 +332,8 @@ button:focus-visible { outline:3px solid #3289b2; outline-offset:3px; }
 .map-caption:empty { display:none; }
 @media(max-width:760px) { .map-caption { grid-column:1 / -1; } }
 .landmark::before { content:''; position:absolute; inset:-8px; }
+
+/* Cloud status is deliberately separate from the challenge instructions. */
+.sync-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:12px 0; color:#fff2ce; font-size:.85rem; }
+.sync-bar button { padding:8px 12px; }
+.import-link { display:inline-block; margin-top:18px; text-decoration:none; }

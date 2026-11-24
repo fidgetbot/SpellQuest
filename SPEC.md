@@ -48,7 +48,7 @@ Child-friendly definitions appear immediately beneath the challenge heading in a
 
 ## Persistence
 
-Campaign progress, active words, queued words, mastered words, trial tiers, stars, streak, hearts, and attempt counts are saved locally in the browser. No account or network service is required.
+The original GitHub Pages edition saves locally without accounts. The Railway edition stores authoritative campaign and active-visit state in PostgreSQL, with a browser recovery cache and revisioned, idempotent commands. One-time browser setup grants play or play + supervisor access; no emails, passwords or PINs. Offline progress pauses while preserving the current draft. See docs/CLOUD-OPERATIONS.md for sync and migration guarantees.
 
 ## Accessibility and device support
 
@@ -60,7 +60,7 @@ Campaign progress, active words, queued words, mastered words, trial tiers, star
 
 ## Out of scope
 
-Handwriting recognition, accounts, timers, punitive scoring, and automatic dictionary definitions.
+Handwriting recognition, public registration, classroom management, timers, punitive scoring, and automatic dictionary definitions.
 
 ## Deployment
 
@@ -106,3 +106,12 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 ## Concise challenge interface
 - Trial headings and word definitions remain; redundant how-to sentences and keyboard helper captions are omitted across all three trial types.
 - Voice answer output retains an accessible “Your answer” label without a visible instruction paragraph. Controls and gameplay are unchanged.
+
+## Cloud edition (2026-11-24)
+- Node 24 web/API service and private PostgreSQL on Railway; same-origin secure, HttpOnly browser sessions. Separate read-only /dashboard requires a supervisor grant on every data request. The URL itself grants nothing and is not linked from the game.
+- One child account may be used from multiple authorized browsers; one active writer at a time. Takeover fences stale tabs. Wrong attempts, hints, puzzle layout, drafts, pending story and realm interludes survive resume.
+- Export from the old origin with transfer.html; preview and import on /import. Existing cloud campaigns are never silently overwritten; original imports and local saves are retained.
+- Learning events begin with cloud use; imported legacy attempts remain separate from accuracy and clean-visit rates. Per-word/per-trial detail, daily activity and recent events are available to supervisors.
+- Encrypted logical backups use separate private object storage. Automatic in-app daily scheduling, bounded retention and isolated restore verification are implemented.
+- No full offline play, email recovery, public signup, dashboard PIN, self-service reset or production migration of the child's actual browser save has been performed.
+- Deployment uses Docker and .railway/railway.ts (unmanaged secret variables); GitHub Pages remains available and local-only until family migration is confirmed.
