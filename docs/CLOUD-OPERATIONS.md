@@ -4,9 +4,9 @@ Implemented 2026-11-24. No public sign-up, passwords, emails or PINs.
 
 ## Endpoints
 
-- Game: https://web-production-5d5c19ae.up.railway.app/
-- Read-only dashboard: https://web-production-5d5c19ae.up.railway.app/dashboard
-- Import: https://web-production-5d5c19ae.up.railway.app/import
+- Game: https://word-quest.up.railway.app/
+- Read-only dashboard: https://word-quest.up.railway.app/dashboard
+- Import: https://word-quest.up.railway.app/import
 - Existing-browser export: https://fidgetbot.github.io/SpellQuest/transfer.html
 
 The dashboard URL is not a bearer credential. Every data request checks the HttpOnly browser session's supervisor grant. The shared browser can be authorized for both play and supervision; it intentionally does not distinguish parent and child using that browser. No dashboard button is shown in gameplay.
@@ -91,3 +91,6 @@ Clean visit rate uses completed visits only. Answer accuracy uses nonblank submi
 - 34 automated checks passed (26 original gameplay checks plus cloud and backup checks).
 - Browser tests passed locally and on Railway using isolated synthetic profiles: setup, supervisor isolation, failed/hinted visit persistence, takeover fencing, corrected practice, pending-story resume, import, Fading Script layout persistence, offline Voice Trial draft recovery, lost-response retry and exactly-once mastery.
 - Real family device setup/import is intentionally not claimed by automated checks.
+
+## Address update (2026-11-24)
+The primary address is https://word-quest.up.railway.app . The original https://web-production-5d5c19ae.up.railway.app remains an explicitly permitted alias, using the same database. APP_ORIGIN is the primary URL; ADDITIONAL_ORIGINS lists the old origin exactly for CSRF validation. Cookies are host-only: authorize the new address once even if the old address was already authorized. The old URL and existing browser sessions continue working; no save migration is needed between these two cloud addresses.

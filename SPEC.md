@@ -115,3 +115,5 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Encrypted logical backups use separate private object storage. Automatic in-app daily scheduling, bounded retention and isolated restore verification are implemented.
 - No full offline play, email recovery, public signup, dashboard PIN, self-service reset or production migration of the child's actual browser save has been performed.
 - Deployment uses Docker and .railway/railway.ts (unmanaged secret variables); GitHub Pages remains available and local-only until family migration is confirmed.
+
+- Primary cloud URL: https://word-quest.up.railway.app . The original generated URL remains a working alias. Mutations accept only the primary or explicitly configured legacy origin; authentication cookies remain host-only.
