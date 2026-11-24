@@ -93,4 +93,4 @@ Clean visit rate uses completed visits only. Answer accuracy uses nonblank submi
 - Real family device setup/import is intentionally not claimed by automated checks.
 
 ## Address update (2026-11-24)
-The primary address is https://word-quest.up.railway.app . The original https://web-production-5d5c19ae.up.railway.app remains an explicitly permitted alias, using the same database. APP_ORIGIN is the primary URL; ADDITIONAL_ORIGINS lists the old origin exactly for CSRF validation. Cookies are host-only: authorize the new address once even if the old address was already authorized. The old URL and existing browser sessions continue working; no save migration is needed between these two cloud addresses.
+The sole cloud address is https://word-quest.up.railway.app . At Nicolas's request, the original generated Railway domain was deleted and ADDITIONAL_ORIGINS removed. APP_ORIGIN remains the primary URL. Saved progress is unchanged. Cookies are host-only: authorize the new address once if only the old address was previously authorized. Browser setup links are single-use credentials delivered privately; there is no public registration URL.

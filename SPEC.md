@@ -116,4 +116,4 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - No full offline play, email recovery, public signup, dashboard PIN, self-service reset or production migration of the child's actual browser save has been performed.
 - Deployment uses Docker and .railway/railway.ts (unmanaged secret variables); GitHub Pages remains available and local-only until family migration is confirmed.
 
-- Primary cloud URL: https://word-quest.up.railway.app . The original generated URL remains a working alias. Mutations accept only the primary or explicitly configured legacy origin; authentication cookies remain host-only.
+- Primary cloud URL: https://word-quest.up.railway.app . The original generated URL has been decommissioned. Mutations accept only the primary origin; authentication cookies remain host-only.
