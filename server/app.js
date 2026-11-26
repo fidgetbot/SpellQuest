@@ -3,6 +3,7 @@ const express=require('express'),crypto=require('node:crypto'),path=require('nod
 const {core,storyPosition,realms}=require('./core');
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 const uuid=()=>crypto.randomUUID();
+const passwords=require('./passwords');
 const validId=x=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(x);
 function fail(code,message){const e=Error(message);e.status=code;throw e;}
 async function tx(db,fn){const c=await db.connect();try{await c.query('BEGIN');const result=await fn(c);await c.query('COMMIT');return result;}catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}}
@@ -14,12 +15,29 @@ const allowedOrigins=new Set([origin,...additionalOrigins]);for(const value of a
 const app=express();app.disable('x-powered-by');app.set('trust proxy',1);const cookie=secure?'__Host-quest':'quest';
 app.use((req,res,next)=>{res.set({'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"});if(secure)res.set('Strict-Transport-Security','max-age=31536000');next();});
 app.get('/healthz',(req,res)=>res.json({ok:true}));
-app.get('/readyz',async(req,res)=>{try{const r=await db.query('SELECT name FROM schema_migrations WHERE name=$1',['001-cloud.sql']);res.status(r.rows.length?200:503).json({ok:!!r.rows.length});}catch{res.status(503).json({ok:false});}});
+app.get('/readyz',async(req,res)=>{try{const r=await db.query('SELECT name FROM schema_migrations WHERE name=$1',['002-password-login.sql']);res.status(r.rows.length?200:503).json({ok:!!r.rows.length});}catch{res.status(503).json({ok:false});}});
 app.use('/api',(req,res,next)=>{res.set('Cache-Control','no-store');if(!['GET','HEAD'].includes(req.method)&&!allowedOrigins.has(req.get('origin')))return res.status(403).json({error:'Open Word Quest on its own site to continue.'});next();});
 app.use(express.json({limit:'512kb'}));
 async function limited(key,limit){const {rows}=await db.query("INSERT INTO rate_limits(key,attempts,reset_at) VALUES($1,1,now()+interval '15 minutes') ON CONFLICT(key) DO UPDATE SET attempts=CASE WHEN rate_limits.reset_at<now() THEN 1 ELSE rate_limits.attempts+1 END, reset_at=CASE WHEN rate_limits.reset_at<now() THEN now()+interval '15 minutes' ELSE rate_limits.reset_at END RETURNING attempts",[key]);if(rows[0].attempts>limit)fail(429,'Too many requests. Please try again later.');}
-app.post('/api/setup/redeem',async(req,res)=>{await limited('setup:'+hash(req.ip),20);const {token,label}=req.body||{};if(typeof token!=='string'||token.length>100)fail(400,'Invalid setup link');const secret=crypto.randomBytes(32).toString('base64url');await tx(db,async c=>{const {rows}=await c.query('SELECT * FROM setup_tokens WHERE hash=$1 AND redeemed_at IS NULL AND expires_at>now() FOR UPDATE',[hash(token)]);if(!rows.length)fail(401,'This setup link has expired or was already used. Ask for a new one.');const t=rows[0];await c.query('UPDATE setup_tokens SET redeemed_at=now() WHERE hash=$1',[hash(token)]);await c.query("INSERT INTO browser_sessions(id,hash,player_id,supervisor,label,expires_at) VALUES($1,$2,$3,$4,$5,now()+interval '90 days')",[uuid(),hash(secret),t.player_id,t.supervisor,typeof label==='string'?label.slice(0,60):'Browser']);});res.cookie(cookie,secret,{httpOnly:true,secure,sameSite:'lax',path:'/',maxAge:90*86400000});res.json({ok:true});});
-app.use('/api',async(req,res,next)=>{const value=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookie+'='))?.slice(cookie.length+1);if(!value||value.length>100)fail(401,'This browser needs a one-time setup link.');const {rows}=await db.query('SELECT b.*,p.nickname FROM browser_sessions b JOIN players p ON p.id=b.player_id WHERE hash=$1 AND NOT revoked AND expires_at>now()',[hash(value)]);if(!rows.length)fail(401,'Browser authorization expired or was revoked. Ask for a new setup link.');req.auth=rows[0];await limited('session:'+req.auth.id,3000);await db.query("UPDATE browser_sessions SET last_seen=now(),expires_at=now()+interval '90 days' WHERE id=$1",[req.auth.id]);res.cookie(cookie,value,{httpOnly:true,secure,sameSite:'lax',path:'/',maxAge:90*86400000});next();});
+function sessionValue(req){return (req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookie+'='))?.slice(cookie.length+1);}
+app.post('/api/login',async(req,res)=>{
+ await limited('login-ip:'+hash(req.ip),30);
+ const name=passwords.username(req.body?.username),password=req.body?.password;
+ if(!name||name.length>40||typeof password!=='string'||password.length>256)fail(401,'Name or password is incorrect.');
+ await limited('login-account:'+hash(name),15);
+ const account=(await db.query('SELECT * FROM login_accounts WHERE username=$1',[name])).rows[0];
+ const valid=await passwords.verify(password,account?.password_hash);
+ if(!account||!valid)fail(401,'Name or password is incorrect.');
+ const secret=crypto.randomBytes(32).toString('base64url');
+ await tx(db,async c=>{
+  const previous=sessionValue(req);if(previous)await c.query('UPDATE browser_sessions SET revoked=true WHERE hash=$1',[hash(previous)]);
+  await c.query("INSERT INTO browser_sessions(id,hash,player_id,supervisor,label,expires_at) VALUES($1,$2,$3,$4,$5,now()+interval '90 days')",[uuid(),hash(secret),account.player_id,account.supervisor,account.display_name]);
+ });
+ res.cookie(cookie,secret,{httpOnly:true,secure,sameSite:'lax',path:'/',maxAge:90*86400000});
+ res.json({ok:true,redirect:account.supervisor?'/dashboard':'/'});
+});
+app.post('/api/setup/redeem',async(req,res)=>{await limited('setup:'+hash(req.ip),20);const {token,label}=req.body||{};if(typeof token!=='string'||token.length>100)fail(400,'Invalid setup link');const secret=crypto.randomBytes(32).toString('base64url');await tx(db,async c=>{const {rows}=await c.query('SELECT * FROM setup_tokens WHERE hash=$1 AND redeemed_at IS NULL AND expires_at>now() FOR UPDATE',[hash(token)]);if(!rows.length)fail(401,'This setup link has expired or was already used. Ask for a new one.');const t=rows[0];if((await c.query('SELECT username FROM login_accounts WHERE player_id=$1',[t.player_id])).rows.length)fail(401,'Please sign in with your name and password.');await c.query('UPDATE setup_tokens SET redeemed_at=now() WHERE hash=$1',[hash(token)]);await c.query("INSERT INTO browser_sessions(id,hash,player_id,supervisor,label,expires_at) VALUES($1,$2,$3,$4,$5,now()+interval '90 days')",[uuid(),hash(secret),t.player_id,t.supervisor,typeof label==='string'?label.slice(0,60):'Browser']);});res.cookie(cookie,secret,{httpOnly:true,secure,sameSite:'lax',path:'/',maxAge:90*86400000});res.json({ok:true});});
+app.use('/api',async(req,res,next)=>{const value=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookie+'='))?.slice(cookie.length+1);if(!value||value.length>100)fail(401,'Please sign in with your name and password.');const {rows}=await db.query('SELECT b.*,p.nickname FROM browser_sessions b JOIN players p ON p.id=b.player_id WHERE hash=$1 AND NOT revoked AND expires_at>now()',[hash(value)]);if(!rows.length)fail(401,'Your session has ended. Please sign in again.');req.auth=rows[0];await limited('session:'+req.auth.id,3000);await db.query("UPDATE browser_sessions SET last_seen=now(),expires_at=now()+interval '90 days' WHERE id=$1",[req.auth.id]);res.cookie(cookie,value,{httpOnly:true,secure,sameSite:'lax',path:'/',maxAge:90*86400000});next();});
 app.get('/api/session',(req,res)=>res.json({playerId:req.auth.player_id,nickname:req.auth.nickname,supervisor:req.auth.supervisor}));
 app.post('/api/session/logout',async(req,res)=>{await db.query('UPDATE browser_sessions SET revoked=true WHERE id=$1',[req.auth.id]);res.clearCookie(cookie,{path:'/',httpOnly:true,secure,sameSite:'lax'});res.json({ok:true});});
 async function campaign(c,player,lock=false){const r=await c.query('SELECT * FROM campaigns WHERE player_id=$1'+(lock?' FOR UPDATE':''),[player]);return r.rows[0];}
@@ -37,7 +55,7 @@ res.json({nickname:req.auth.nickname,mastered:s.mastered.length,total:s.campaign
 const root=path.join(__dirname,'..');
 app.get('/config.js',(req,res)=>{res.type('js').set('Cache-Control','no-store').send('window.QUEST_CLOUD=true;');});
 app.get('/',(req,res)=>res.set('Cache-Control','no-cache').sendFile(path.join(root,'index.html'),{dotfiles:'allow'}));
-for(const name of ['setup','dashboard','import'])app.get('/'+name,(req,res)=>res.set('Cache-Control','no-store').sendFile(path.join(root,'dashboard',name+'.html'),{dotfiles:'allow'}));
+for(const name of ['setup','login','dashboard','import'])app.get('/'+name,(req,res)=>res.set('Cache-Control','no-store').sendFile(path.join(root,'dashboard',name+'.html'),{dotfiles:'allow'}));
 app.use('/client',express.static(path.join(root,'client'),{maxAge:0}));app.use('/dashboard-assets',express.static(path.join(root,'dashboard'),{maxAge:0,index:false}));
 app.use('/assets/source',(_req,res)=>res.sendStatus(404));
 app.use('/assets',express.static(path.join(root,'assets'),{maxAge:'1d',index:false,setHeaders:res=>res.set('Cache-Control','public,max-age=86400')}));

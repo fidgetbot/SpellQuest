@@ -1,9 +1,10 @@
 # Cloud Word Quest operations
 
-Implemented 2026-11-24. No public sign-up, passwords, emails or PINs.
+Implemented 2026-11-24; name/password login added 2026-11-26. No public sign-up, emails or PINs.
 
 ## Endpoints
 
+- Sign in: https://word-quest.up.railway.app/login
 - Game: https://word-quest.up.railway.app/
 - Read-only dashboard: https://word-quest.up.railway.app/dashboard
 - Import: https://word-quest.up.railway.app/import
@@ -37,7 +38,16 @@ The Dockerfile runs as a non-root user, serves only explicitly allowed runtime f
 
 Never print variable lists to chat, put credentials into command arguments, commit setup links, or capture them in screenshots.
 
-## Account maintenance
+## Password accounts (2026-11-26)
+The family now signs in at `/login`: Niko (player), Gaea (parent with supervisor and play permission), both linked to the original family player ID. Names and passwords are case-insensitive (NFKC + lowercase). Username whitespace is trimmed; password whitespace is preserved. Stored credentials use per-password random salts and scrypt N=32768/r=8/p=1, 32-byte keys. Login attempts are limited per IP (30/15 minutes) and normalized username (15/15 minutes); missing users and incorrect passwords share one error and perform the same password derivation.
+
+Create a login using `node scripts/create-login.cjs PLAYER_ID NAME player|parent /tmp/private-output.json`. It generates a 96-bit random password and writes it only to the private output file. It refuses to overwrite an existing login, revokes the player's previous sessions, and expires old setup links. Deliver credentials in the requesting parent's direct chat and remove temporary credential files afterwards. Do not re-run to reset existing passwords: that requires an explicit maintenance update, fresh hash and session revocation.
+
+Sign-out is available in game and dashboard. Login revokes the browser's previous session and uses a new cookie. Gaea lands at `/dashboard`; Niko lands at `/`. A player visiting `/dashboard` gets a switch-account link, not dashboard data. No dashboard link is added to gameplay. Legacy one-time setup is blocked for any player with password accounts. Existing saved progress and original local exports are untouched.
+
+Backups now contain eight tables including `login_accounts`; older seven-table backups remain restorable but require reprovisioning passwords. The isolated backup test verifies password verification after restoration.
+
+## Legacy browser setup / account maintenance
 
 Run operator commands inside the web service through authenticated Railway SSH so the database remains private:
 
@@ -71,10 +81,10 @@ Do not choose Begin the quest on the cloud site before importing if you want the
 
 Built-in volume snapshot entitlement was uncertain, so the implementation does not depend on it. The app checks on startup and hourly whether a backup is due. Every 24 hours it creates a transactionally consistent logical snapshot, compresses and encrypts it with AES-256-GCM, then uploads it to the separate private bucket. Seven daily and four weekly restore points are retained (overlapping points may be shared). It also prunes old command responses and rate-limit windows.
 
-The encrypted snapshot contains players, setup tokens, sessions, campaigns, retry responses, learning events and original imports. Schema is recreated from version-controlled migrations. The encryption key is essential; do not rotate/delete it without migrating existing backups.
+The encrypted snapshot contains players, password accounts, setup tokens, sessions, campaigns, retry responses, learning events and original imports. Schema is recreated from version-controlled migrations. The encryption key is essential; do not rotate/delete it without migrating existing backups.
 
 - Force a snapshot in the web container: `node scripts/backup-now.cjs`. Output is an object key, not a signed URL.
-- Verify a hosted backup locally: `node scripts/backup-restore.cjs OBJECT_KEY`. This fetches bucket credentials without printing them, downloads/decrypts the object and restores into an isolated PGlite database. It verifies counts in all seven tables; it does not change production.
+- Verify a hosted backup locally: `node scripts/backup-restore.cjs OBJECT_KEY`. This fetches bucket credentials without printing them, downloads/decrypts the object and restores into an isolated PGlite database. It verifies counts in all included tables; it does not change production.
 - Real recovery: freeze writes, back up the current database, migrate an empty replacement database, then call `restoreEmpty` with the decrypted snapshot. It refuses a nonempty destination, restores sequence position, revokes all restored browser sessions and expires restored setup tokens. Reauthorize browsers after recovery.
 - An application image rollback must not run destructive down migrations or silently restore an older database.
 
@@ -94,3 +104,5 @@ Clean visit rate uses completed visits only. Answer accuracy uses nonblank submi
 
 ## Address update (2026-11-24)
 The sole cloud address is https://word-quest.up.railway.app . At Nicolas's request, the original generated Railway domain was deleted and ADDITIONAL_ORIGINS removed. APP_ORIGIN remains the primary URL. Saved progress is unchanged. Cookies are host-only: authorize the new address once if only the old address was previously authorized. Browser setup links are single-use credentials delivered privately; there is no public registration URL.
+
+Login verification: 35 automated checks and mobile browser checks cover mixed-case login, role isolation, switching/revocation, sign-out, campaign resume, wrong passwords, rate limiting and credential backup restoration.

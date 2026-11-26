@@ -1,0 +1,2 @@
+const logout=document.getElementById('logout');
+if(logout)logout.onclick=async()=>{logout.disabled=true;try{const r=await fetch('/api/session/logout',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});if(!r.ok&&r.status!==401)throw Error('Could not sign out. Try again.');location.replace('/login');}catch(e){logout.disabled=false;document.getElementById('message').textContent=e.message;}};

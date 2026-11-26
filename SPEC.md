@@ -117,3 +117,12 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Deployment uses Docker and .railway/railway.ts (unmanaged secret variables); GitHub Pages remains available and local-only until family migration is confirmed.
 
 - Primary cloud URL: https://word-quest.up.railway.app . The original generated URL has been decommissioned. Mutations accept only the primary origin; authentication cookies remain host-only.
+
+## Name/password login (2026-11-26)
+- `/login` accepts case-insensitive names and passwords (Unicode NFKC then lowercase; surrounding username spaces ignored, password spaces preserved).
+- Niko is the player login; Gaea is the parent login linked to the same existing player/campaign. Niko opens the game; Gaea opens the read-only dashboard. Existing parent-plus-play permissions remain.
+- Passwords are salted and scrypt-hashed; neither plaintext passwords nor hashes are returned by the API. Failed attempts are throttled by IP and normalized account name with generic errors.
+- Signing in replaces/revokes the current browser session. Sign out is available in game and dashboard. Player logins cannot grant themselves supervisor access.
+- Existing family browser sessions and setup links are revoked when login accounts are provisioned; one-time setup cannot bypass passwords for an account with logins.
+- Login credentials are included in encrypted backup/restore. Existing backups without login accounts still restore.
+- Account creation and password maintenance remain operator-managed; no public registration or email recovery.
