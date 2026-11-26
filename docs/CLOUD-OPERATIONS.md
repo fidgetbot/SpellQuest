@@ -106,3 +106,5 @@ Clean visit rate uses completed visits only. Answer accuracy uses nonblank submi
 The sole cloud address is https://word-quest.up.railway.app . At Nicolas's request, the original generated Railway domain was deleted and ADDITIONAL_ORIGINS removed. APP_ORIGIN remains the primary URL. Saved progress is unchanged. Cookies are host-only: authorize the new address once if only the old address was previously authorized. Browser setup links are single-use credentials delivered privately; there is no public registration URL.
 
 Login verification: 35 automated checks and mobile browser checks cover mixed-case login, role isolation, switching/revocation, sign-out, campaign resume, wrong passwords, rate limiting and credential backup restoration.
+
+Release verified 2026-11-26: both real accounts passed live HTTPS mixed-case login, role checks and logout without creating or changing a campaign. Fresh encrypted backup restored into an isolated database with all eight table counts matching. Passwords delivered to Nicolas by direct message; temporary plaintext files removed. The family cloud campaign remains empty pending import or a new quest.
