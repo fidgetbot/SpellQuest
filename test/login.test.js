@@ -20,5 +20,15 @@ test('password login: case folding, roles, switching, logout, legacy setup and t
   assert.equal((await req('/api/session',undefined,child.cookie)).body.playerId,player);
   await req('/api/session/logout',{},child.cookie);assert.equal((await req('/api/campaign',undefined,child.cookie)).status,401);
   let last;for(let i=0;i<16;i++)last=await req('/api/login',{username:i%2?'NIKO':'niko',password:'wrong'});assert.equal(last.status,429);
+
+  const {resetPasswords}=require('../server/accounts');
+  await assert.rejects(()=>resetPasswords(db,[{username:'niko',password:'Newpass8'},{username:'missing',password:'Otherpass8'}]));
+  assert.equal((await db.query("SELECT password_hash FROM login_accounts WHERE username='niko'")).rows[0].password_hash,encoded);
+  await assert.rejects(()=>resetPasswords(db,[{username:'niko',password:'short'}]));
+  await resetPasswords(db,[{username:'Niko',password:'Newpass8'},{username:'Gaea',password:'Parentpass8'}]);
+  const reset=await req('/api/login',{username:'NIKO',password:'NEWPASS8'});assert.equal(reset.status,200);
+  assert.equal((await req('/api/login',{username:'niko',password:pass})).status,401);
+  await resetPasswords(db,[{username:'Niko',password:'Nextpass8'}]);
+  assert.equal((await req('/api/session',undefined,reset.cookie)).status,401);
  }finally{await new Promise(r=>server.close(r));await pg.close();}
 });

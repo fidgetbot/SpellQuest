@@ -126,3 +126,5 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Existing family browser sessions and setup links are revoked when login accounts are provisioned; one-time setup cannot bypass passwords for an account with logins.
 - Login credentials are included in encrypted backup/restore. Existing backups without login accounts still restore.
 - Account creation and password maintenance remain operator-managed; no public registration or email recovery.
+
+- Operator password changes accept 8–256 characters, update salted hashes atomically, revoke linked browser sessions and expire setup tokens without changing progress. Passwords are supplied over stdin, not command arguments.
