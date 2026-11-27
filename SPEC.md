@@ -138,3 +138,6 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 
 ## Scrollable victory vault
 - The vault renders every mastered word’s crystal, rather than only the latest twelve. Its grid is capped at 220px with vertical touch, mouse and keyboard scrolling; focus and an accessible region label are provided. Progress and crystal award rules are unchanged.
+
+## Clear resume confirmation
+- Continue loads the latest authoritative cloud save. When another tab/device holds the writer lease or a save conflict occurs, a single “Play on this device” confirmation explains that the latest saved progress will be resumed and other active play paused. The redundant “Load latest save” option is removed. Pending-action recovery copies and fencing remain unchanged; the original Continue button is disabled while confirmation is needed.
