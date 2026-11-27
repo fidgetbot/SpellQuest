@@ -152,3 +152,5 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - The words grid scrolls within a viewport-height-bounded region with sticky column headings, including on mobile and during horizontal scrolling.
 - For mastered words with complete recorded history (one clean win per trial and no legacy attempts), Answers/Correct/Clean are green only for exactly 3 answers, 3 correct, 3 clean, 0 practice and 0 hints; otherwise all three are red. Incomplete/imported histories remain neutral. A legend and cell descriptions explain the colors.
 - Presentation only; no changes to saved progress, events or scoring.
+
+- Mastered words rated non-optimal also have a reddish word-button background, making the same rating visible without horizontal scrolling on phones. Other word buttons retain their turquoise background.
