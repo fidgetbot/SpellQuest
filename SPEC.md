@@ -147,3 +147,8 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Comparison follows existing case, apostrophe and whitespace grading rules, including Mom/mom case sensitivity. Editing clears markings and accessible feedback; the next submission recomputes them. Cloud wrong-answer responses use the same renderer. Scoring, saved answer text and progression are unchanged.
 
 - Clicking “Continue as [name]” is explicit device-switch authorization: it retries a pending action first, retains rejected stale actions as recovery copies, and acquires the latest server snapshot with automatic takeover if needed. No second button press is required. Mid-play conflicts still pause the old tab and offer “Play on this device”; background reconnects never automatically steal control.
+
+### Parent dashboard readability (2026-11-27)
+- The words grid scrolls within a viewport-height-bounded region with sticky column headings, including on mobile and during horizontal scrolling.
+- For mastered words with complete recorded history (one clean win per trial and no legacy attempts), Answers/Correct/Clean are green only for exactly 3 answers, 3 correct, 3 clean, 0 practice and 0 hints; otherwise all three are red. Incomplete/imported histories remain neutral. A legend and cell descriptions explain the colors.
+- Presentation only; no changes to saved progress, events or scoring.
