@@ -145,3 +145,5 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 ## Listen and Write correction feedback
 - Incorrect/extra submitted characters receive high-contrast red backgrounds and underlines; missing characters use blank gap markers, never the correct letters. Edit-distance alignment prevents a single insertion/deletion from marking the entire suffix wrong.
 - Comparison follows existing case, apostrophe and whitespace grading rules, including Mom/mom case sensitivity. Editing clears markings and accessible feedback; the next submission recomputes them. Cloud wrong-answer responses use the same renderer. Scoring, saved answer text and progression are unchanged.
+
+- Clicking “Continue as [name]” is explicit device-switch authorization: it retries a pending action first, retains rejected stale actions as recovery copies, and acquires the latest server snapshot with automatic takeover if needed. No second button press is required. Mid-play conflicts still pause the old tab and offer “Play on this device”; background reconnects never automatically steal control.
