@@ -1,1 +1,36 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in — Word Quest</title><link rel="stylesheet" href="/dashboard-assets/base.css"><main><h1>Welcome to Word Quest</h1><section class="panel"><form id="login"><p><label>Name <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40" required></label></p><p><label>Password <input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required></label></p><p>Names and passwords work with any capitalization.</p><button id="submit" type="submit">Sign in</button><p id="message" role="status"></p></form></section></main><script src="/dashboard-assets/login.js"></script></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#102c2a">
+  <title>Sign in — Word Quest</title>
+  <link rel="stylesheet" href="/dashboard-assets/login.css">
+  <link rel="preload" href="/assets/niko-pip-adventure.webp" as="image">
+</head>
+<body>
+  <main class="welcome">
+    <section class="adventure" aria-label="Niko and Pip begin their adventure">
+      <img class="adventure-art" src="/assets/niko-pip-adventure.webp" alt="Niko, a curly-haired young adventurer seen from behind, sets off into a sunlit forest with Pip the fox. An ornate golden N is embossed on the shield on his back." width="1024" height="1536" fetchpriority="high">
+      <div class="brand"><span class="brand-rule" aria-hidden="true"></span><span>Word Quest</span><span class="brand-rule" aria-hidden="true"></span></div>
+      <p class="art-caption">A world of words.<br>A journey of your own.</p>
+    </section>
+    <section class="sign-in" aria-labelledby="welcome-title">
+      <div class="form-content">
+        <span class="chapter-label">THE ADVENTURE CONTINUES</span>
+        <h1 id="welcome-title">Your next chapter <br>starts here.</h1>
+        <p class="welcome-copy">Niko and Pip are ready. Are you?</p>
+        <form id="login">
+          <div class="field"><label for="username">Name</label><input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40" required></div>
+          <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false" maxlength="256" required aria-describedby="case-help"></div>
+          <p class="case-help" id="case-help">Uppercase or lowercase — either works.</p>
+          <button id="submit" type="submit"><span>Sign in</span><span aria-hidden="true">→</span></button>
+          <p id="message" role="status" aria-live="polite"></p>
+        </form>
+        <p class="closing-note"><span aria-hidden="true">✦</span> One word. A little courage. A whole new world.</p>
+      </div>
+    </section>
+  </main>
+  <script src="/dashboard-assets/login.js"></script>
+</body>
+</html>
