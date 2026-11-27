@@ -133,3 +133,5 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - The login screen has an original painterly Niko-and-Pip adventure illustration: a curly-brown-haired boy around ten, seen from behind with travel equipment and an embossed gold N on his shield; Pip is the canonical red fox companion.
 - Desktop uses an illustrated panel beside a parchment-colored login form; phones stack the cropped illustration above the form. Name/password labels sit above equal-width, aligned fields with accessible focus states and password-manager autocomplete.
 - Login CSS is isolated from the dashboard. Login behavior and saved progress are unchanged. The optimized WebP is served as a runtime asset; the PNG source is retained under assets/source and is not publicly served.
+
+- Login copy omits “The adventure continues” and “Niko and Pip are ready. Are you?”; the main heading leads directly into the aligned form.

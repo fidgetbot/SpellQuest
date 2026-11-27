@@ -11,7 +11,7 @@ body{margin:0;min-height:100svh;display:grid;place-items:center;padding:40px 24p
 .sign-in{display:flex;align-items:center;justify-content:center;background:var(--paper);background-image:radial-gradient(ellipse at 100% 0%,#fff9ed,transparent 80%);padding:52px 48px}
 .form-content{width:100%;max-width:350px}
 .chapter-label{font-size:10px;font-weight:700;letter-spacing:.22em;color:#837144;display:block;margin-bottom:20px}
-h1{font:normal 43px/1.12 Georgia,"Times New Roman",serif;letter-spacing:-.035em;margin:0 0 18px}
+h1{font:normal 43px/1.12 Georgia,"Times New Roman",serif;letter-spacing:-.035em;margin:0 0 32px}
 .welcome-copy{font-size:14px;line-height:1.6;color:var(--muted);margin:0 0 32px}
 .field{display:grid;gap:8px;margin-bottom:20px}
 label{font-size:13px;font-weight:650;letter-spacing:.02em}
@@ -26,5 +26,5 @@ button:disabled{opacity:.65;cursor:wait;transform:none}
 #message{font-size:13px;color:#854120;line-height:1.5;margin:12px 0 0;min-height:20px;overflow-wrap:anywhere}
 .closing-note{border-top:1px solid #d9d7c7;padding-top:22px;margin:24px 0 0;font:italic 13px/1.6 Georgia,"Times New Roman",serif;color:#77745c}
 .closing-note span{color:#a28244;margin-right:5px;font-style:normal}
-@media(max-width:760px){body{padding:0;display:block;background:var(--paper)}.welcome{display:block;width:100%;border:0;border-radius:0;box-shadow:none}.adventure{min-height:0;height:clamp(330px,100vw,430px)}.adventure-art{object-position:50% 66%}.brand{top:16px;font-size:26px}.brand-rule{width:24px}.art-caption{display:none}.adventure:after{background:linear-gradient(180deg,#082a2aa6,transparent 40%,transparent 90%,#102c2a20)}.sign-in{padding:30px 28px 22px}.form-content{max-width:430px}.chapter-label{font-size:9px;margin-bottom:12px}h1{font-size:34px;line-height:1.08;margin-bottom:12px}h1 br{display:none}.welcome-copy{margin-bottom:24px;font-size:13px}.field{margin-bottom:17px}.case-help{margin-bottom:20px}.closing-note{margin-top:12px;padding-top:16px;font-size:12px}}
+@media(max-width:760px){body{padding:0;display:block;background:var(--paper)}.welcome{display:block;width:100%;border:0;border-radius:0;box-shadow:none}.adventure{min-height:0;height:clamp(330px,100vw,430px)}.adventure-art{object-position:50% 66%}.brand{top:16px;font-size:26px}.brand-rule{width:24px}.art-caption{display:none}.adventure:after{background:linear-gradient(180deg,#082a2aa6,transparent 40%,transparent 90%,#102c2a20)}.sign-in{padding:30px 28px 22px}.form-content{max-width:430px}.chapter-label{font-size:9px;margin-bottom:12px}h1{font-size:34px;line-height:1.08;margin-bottom:24px}h1 br{display:none}.welcome-copy{margin-bottom:24px;font-size:13px}.field{margin-bottom:17px}.case-help{margin-bottom:20px}.closing-note{margin-top:12px;padding-top:16px;font-size:12px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
