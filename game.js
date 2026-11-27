@@ -56,7 +56,7 @@ function renderCampaign(){
   $('mastered-count').textContent=`${state.mastered.length} / ${state.campaignWords.length}`;$('stars').textContent=state.stars;$('streak').textContent=state.streak;$('hearts').textContent=`${state.hearts} / ${MAX_HEARTS}`;
   $('hint-btn').disabled=state.locked||state.hearts===0||state.hintUsed;
   $('active-count').textContent=`${state.active.length} active`;$('queue-count').textContent=state.queue.length?`${state.queue.length} waiting`:'No words waiting';
-  $('jewel-vault').innerHTML=state.mastered.length?state.mastered.slice(-12).map(word=>jewelMarkup(word,true)).join(''):'<p class="empty-vault">Rewards will appear here.</p>';
+  $('jewel-vault').innerHTML=state.mastered.length?state.mastered.map(word=>jewelMarkup(word,true)).join(''):'<p class="empty-vault">Rewards will appear here.</p>';
   const position=storyPosition(state),realmIndex=Math.min(11,Math.floor((state.pendingVictory?.boundary?Math.max(0,position-1):position)/93)),realm=STORY_REALMS[realmIndex];
   $('realm-name').textContent=currentWord()&&realm.name.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'Realm '+(realmIndex+1):realm.name;$('realm-progress').textContent='Realm '+(realmIndex+1)+' / 12 · '+Math.min(93,position-realmIndex*93)+' / 93';
   $('realm-objective').textContent=currentWord()&&realm.goal.toLocaleLowerCase().includes(currentWord().toLocaleLowerCase())?'Continue your journey':realm.goal;

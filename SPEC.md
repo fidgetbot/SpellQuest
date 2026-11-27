@@ -135,3 +135,6 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 - Login CSS is isolated from the dashboard. Login behavior and saved progress are unchanged. The optimized WebP is served as a runtime asset; the PNG source is retained under assets/source and is not publicly served.
 
 - Login copy omits “The adventure continues” and “Niko and Pip are ready. Are you?”; the main heading leads directly into the aligned form.
+
+## Scrollable victory vault
+- The vault renders every mastered word’s crystal, rather than only the latest twelve. Its grid is capped at 220px with vertical touch, mouse and keyboard scrolling; focus and an accessible region label are provided. Progress and crystal award rules are unchanged.

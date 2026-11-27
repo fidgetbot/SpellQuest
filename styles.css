@@ -75,7 +75,7 @@ button:disabled { cursor: default; opacity: .5; transform: none; }
 .trial-dots i.passed { background: var(--mint); box-shadow: 0 0 7px #6ee7b777; }
 .vault-heading { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--gold); font-weight: 900; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
 .vault-heading small { color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 500; }
-.jewel-vault { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; min-height: 66px; margin: 12px 0 18px; align-items: start; }
+.jewel-vault { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; min-height: 66px; max-height: 220px; overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable; padding: 4px 3px; margin: 12px 0 18px; align-items: start; }
 .empty-vault { grid-column: 1 / -1; align-self: center; margin: 0; color: #7f8aa5; font-size: .78rem; text-align: center; }
 .jewel-win { min-width: 0; text-align: center; color: hsl(var(--hue) 90% 78%); }
 .jewel-win b { display: block; overflow: hidden; margin-top: 4px; font-size: .62rem; text-overflow: ellipsis; white-space: nowrap; }
@@ -337,3 +337,5 @@ button:focus-visible { outline:3px solid #3289b2; outline-offset:3px; }
 .sync-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:12px 0; color:#fff2ce; font-size:.85rem; }
 .sync-bar button { padding:8px 12px; }
 .import-link { display:inline-block; margin-top:18px; text-decoration:none; }
+
+.jewel-vault:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
