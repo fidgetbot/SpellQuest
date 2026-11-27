@@ -339,3 +339,7 @@ button:focus-visible { outline:3px solid #3289b2; outline-offset:3px; }
 .import-link { display:inline-block; margin-top:18px; text-decoration:none; }
 
 .jewel-vault:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* Voice feedback marks only submitted characters; gaps never reveal the answer. */
+.spell-input .voice-mark { display:inline-block; min-width:.65em; border-radius:4px; padding:0 .08em; color:#fff; background:#8f2942; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px; }
+.spell-input .voice-missing { min-width:.8em; margin:0 .06em; background:#f4d8df; color:#8f2942; border-bottom:3px solid #8f2942; text-decoration:none; }

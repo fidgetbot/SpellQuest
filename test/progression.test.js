@@ -382,3 +382,23 @@ test('all twelve maps follow authored scenes and inspection never changes progre
     assert.deepEqual(errors,[]);dom.window.close();
   }
 });
+
+test('Voice correction marks substitutions, insertions and gaps without revealing answers',()=>{
+  const {dom}=createGame();const w=dom.window;
+  const marks=(a,b)=>JSON.parse(JSON.stringify(w.voiceAnswerMarks(a,b)));
+  assert.deepEqual(marks('mashine','Machine').filter(m=>m.kind!=='correct'),[{text:'s',kind:'wrong'}]);
+  assert.deepEqual(marks('mahine','Machine').filter(m=>m.kind!=='correct'),[{text:'_',kind:'missing'}]);
+  assert.deepEqual(marks('machhine','Machine').filter(m=>m.kind!=='correct'),[{text:'h',kind:'extra'}]);
+  assert.ok(marks('  DON’T   STOP ','don\'t stop').every(m=>m.kind==='correct'));
+  assert.deepEqual(marks('mom','Mom').filter(m=>m.kind!=='correct'),[{text:'m',kind:'wrong'}]);
+  assert.deepEqual(marks('si','sí').filter(m=>m.kind!=='correct'),[{text:'i',kind:'wrong'}]);
+  w.renderVoiceTrial();type(dom,'mahine');w.markSubmittedLetters('Machine');
+  assert.equal(w.document.querySelectorAll('.voice-missing').length,1);
+  assert.equal(w.document.getElementById('spell-input').textContent,'ma_hine');
+  assert.ok(!w.document.getElementById('spell-input').innerHTML.includes('Missing letter: c'));
+  [...w.document.querySelectorAll('.voice-key')].find(b=>b.textContent==='x').click();
+  assert.equal(w.document.querySelectorAll('.voice-mark').length,0);
+  assert.equal(w.document.getElementById('spell-input').textContent,'mahinex');
+  assert.equal(w.document.getElementById('spell-input').getAttribute('aria-label'),'Your answer');
+  dom.window.close();
+});

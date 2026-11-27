@@ -141,3 +141,7 @@ The static game is published from the root of `main` through GitHub Pages at `ht
 
 ## Clear resume confirmation
 - Continue loads the latest authoritative cloud save. When another tab/device holds the writer lease or a save conflict occurs, a single “Play on this device” confirmation explains that the latest saved progress will be resumed and other active play paused. The redundant “Load latest save” option is removed. Pending-action recovery copies and fencing remain unchanged; the original Continue button is disabled while confirmation is needed.
+
+## Listen and Write correction feedback
+- Incorrect/extra submitted characters receive high-contrast red backgrounds and underlines; missing characters use blank gap markers, never the correct letters. Edit-distance alignment prevents a single insertion/deletion from marking the entire suffix wrong.
+- Comparison follows existing case, apostrophe and whitespace grading rules, including Mom/mom case sensitivity. Editing clears markings and accessible feedback; the next submission recomputes them. Cloud wrong-answer responses use the same renderer. Scoring, saved answer text and progression are unchanged.

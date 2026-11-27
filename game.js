@@ -133,7 +133,7 @@ function renderFadingScript(word){
 }
 function renderVoiceTrial(){
   $('answer-area').innerHTML='<div class="voice-entry"><div id="spell-input" class="spell-input" role="status" aria-label="Your answer" aria-live="polite"></div><div id="voice-keyboard" class="voice-keyboard" role="group" aria-label="Answer keyboard"></div></div>';
-  function update(){ $('spell-input').textContent=state.answer; }
+  function update(){ $('spell-input').textContent=state.answer;$('spell-input').setAttribute('aria-label','Your answer'); }
   renderAnswerKeyboard({letter(c){state.answer+=c;update();},backspace(){state.answer=[...state.answer].slice(0,-1).join('');update();},clear(){state.answer='';update();}},true);
 }
 function renderAnswerKeyboard(actions,punctuation){
@@ -164,14 +164,41 @@ function hint(){
   else{fadingEntry.hint();$('feedback').textContent='One faded rune has returned.'+costText(spent);}
   $('feedback').className='feedback try';
 }
+// Edit-distance alignment avoids marking a whole suffix after a missing/extra letter.
+function voiceAnswerMarks(answer,word){
+  const clean=s=>[...s.replace(/[’‘]/g,"'").replace(/\s+/g,' ').trim()];
+  const a=clean(answer),b=clean(word),sensitive=word==='Mom'||word==='mom';
+  const equal=(x,y)=>sensitive?x===y:x.toLocaleLowerCase()===y.toLocaleLowerCase();
+  const d=Array.from({length:a.length+1},()=>new Uint32Array(b.length+1));
+  for(let i=0;i<=a.length;i++)d[i][0]=i;
+  for(let j=0;j<=b.length;j++)d[0][j]=j;
+  for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j-1]+(equal(a[i-1],b[j-1])?0:1),d[i-1][j]+1,d[i][j-1]+1);
+  const marks=[];let i=a.length,j=b.length;
+  while(i||j){
+    if(i&&j&&d[i][j]===d[i-1][j-1]+(equal(a[i-1],b[j-1])?0:1)){marks.push({text:a[i-1],kind:equal(a[i-1],b[j-1])?'correct':'wrong'});i--;j--;}
+    else if(i&&d[i][j]===d[i-1][j]+1){marks.push({text:a[i-1],kind:'extra'});i--;}
+    else{marks.push({text:'_',kind:'missing'});j--;}
+  }
+  return marks.reverse();
+}
+function markVoiceAnswer(word){
+  const output=$('spell-input');if(!output||!state.answer.trim())return;
+  const marks=voiceAnswerMarks(state.answer,word);output.replaceChildren();
+  for(const mark of marks){const span=document.createElement('span');span.textContent=mark.text;
+    if(mark.kind!=='correct'){span.className='voice-mark voice-'+mark.kind;span.setAttribute('aria-label',mark.kind==='missing'?'Missing letter':(mark.kind==='extra'?'Extra':'Incorrect')+' character: '+(mark.text===' '?'space':mark.text));}
+    output.append(span);
+  }
+  output.setAttribute('aria-label','Your answer: '+state.answer+'. '+marks.filter(m=>m.kind==='wrong').length+' incorrect, '+marks.filter(m=>m.kind==='extra').length+' extra, '+marks.filter(m=>m.kind==='missing').length+' missing characters.');
+}
 function markSubmittedLetters(word){
+  markVoiceAnswer(word);
   document.querySelectorAll('.slot, .fading-slot').forEach(field=>{const value=field.tagName==='INPUT'?field.value:field.textContent;field.classList.toggle('wrong',Boolean(value)&&!answerMatches(value,word[Number(field.dataset.position)]));});
 }
 function check(){
   if(window.Cloud)return Cloud.action('submit');
   if(state.locked)return;const before=storyPosition(state);const word=currentWord(),tier=currentTier();state.attempts[word]=(state.attempts[word]||0)+1;
   markSubmittedLetters(word);
-  if(!answerMatches(state.answer,word)){state.streak=0;if(state.answer)state.visitFailed=true;const spent=state.answer?spendHeart():0;const retry=tier===2?'Not yet. Listen once more and try again.':'Not yet. Study the red letters and try once more.';$('feedback').textContent=state.answer?retry+costText(spent):'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
+  if(!answerMatches(state.answer,word)){state.streak=0;if(state.answer)state.visitFailed=true;const spent=state.answer?spendHeart():0;const retry=tier===2?'Not yet. Check the marked letters and gaps, then listen again.':'Not yet. Study the red letters and try once more.';$('feedback').textContent=state.answer?retry+costText(spent):'Build or type an answer first.';$('feedback').className='feedback try';renderCampaign();return;}
   state.locked=true;state.hearts=Math.min(MAX_HEARTS,state.hearts+1);
   if(state.visitFailed){state.streak=0;state.lastMastered=false;$('feedback').textContent=`Practice complete: “${word}” must return later for a clean first-try victory.`;}
   else if(tier<2){state.streak++;state.stars+=TRIALS[tier].reward;state.progress[word]=tier+1;$('feedback').textContent=tier===0?`“${word}” is ready for a harder trial.`:`One final Voice Trial remains for “${word}”.`;state.lastMastered=false;}
